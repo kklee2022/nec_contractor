@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{% if object %}Edit{% else %}Raise{% endif %} Early Warning{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.pk %}">{{ project.reference }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'early_warnings:list' project.pk %}">EW Register</a></li>
+    <li class="breadcrumb-item active">{% if object %}Edit{% else %}Raise{% endif %}</li>
+  </ol>
+</nav>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i>
+          {% if object %}Edit Early Warning{% else %}Raise Early Warning (NEC4 Clause 15){% endif %}
+        </h5>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <a href="{% url 'early_warnings:list' project.pk %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-warning">
+              <i class="bi bi-send"></i> {% if object %}Save{% else %}Raise Early Warning{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

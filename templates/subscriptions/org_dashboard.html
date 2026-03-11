@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Organisation — {{ org.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0"><i class="bi bi-buildings"></i> {{ org.name }}</h2>
+    <p class="text-muted small mb-0">
+      Organisation Dashboard
+      {% if plan %}
+      &mdash; <span class="badge bg-primary">{{ plan.name }} Plan</span>
+      {% endif %}
+    </p>
+  </div>
+  {% if membership.is_org_admin %}
+  <a href="{% url 'subscriptions:member_invite' %}" class="btn btn-primary">
+    <i class="bi bi-person-plus"></i> Invite Member
+  </a>
+  {% endif %}
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <div class="fs-2 fw-bold text-primary">{{ org.project_count }}</div>
+      <div class="text-muted small">
+        Projects
+        {% if plan and not plan.is_unlimited_projects %}
+        <span class="text-secondary">/ {{ plan.max_projects }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <div class="fs-2 fw-bold text-info">{{ org.active_member_count }}</div>
+      <div class="text-muted small">
+        Members
+        {% if plan and not plan.is_unlimited_members %}
+        <span class="text-secondary">/ {{ plan.max_members }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <div class="fs-2 fw-bold {% if plan.deadline_emails %}text-success{% else %}text-secondary{% endif %}">
+        <i class="bi {% if plan.deadline_emails %}bi-envelope-check{% else %}bi-envelope-x{% endif %}"></i>
+      </div>
+      <div class="text-muted small">Deadline Emails</div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card border-0 shadow-sm text-center py-3">
+      <div class="fs-2 fw-bold text-warning">
+        <i class="bi bi-credit-card"></i>
+      </div>
+      <div class="text-muted small">
+        {% if membership.is_org_admin %}
+        <a href="{% url 'subscriptions:billing' %}">Billing</a>
+        {% else %}
+        Billing
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Members -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <h5 class="mb-0"><i class="bi bi-people"></i> Members</h5>
+    {% if membership.is_org_admin %}
+    <a href="{% url 'subscriptions:member_list' %}" class="btn btn-sm btn-outline-primary">
+      Manage Members
+    </a>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>NEC4 Role</th>
+            <th>Org Role</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in members %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ m.user.get_full_name|default:m.user.username }}</div>
+              <div class="text-muted small">{{ m.user.email }}</div>
+            </td>
+            <td><span class="badge bg-secondary">{{ m.user.get_role_display }}</span></td>
+            <td>
+              {% if m.org_role == 'owner' %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> Owner</span>
+              {% elif m.org_role == 'admin' %}
+              <span class="badge bg-primary">Admin</span>
+              {% else %}
+              <span class="badge bg-light text-dark border">Member</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if m.is_active %}
+              <span class="badge bg-success-subtle text-success">Active</span>
+              {% else %}
+              <span class="badge bg-danger-subtle text-danger">Inactive</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

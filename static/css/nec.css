@@ -1,0 +1,86 @@
+/* NEC4 ECC Contractor Platform — custom styles */
+
+:root {
+  --nec-primary: #0d6efd;
+  --nec-sidebar-width: 240px;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 0.9375rem;
+}
+
+/* Navbar */
+.navbar-brand {
+  letter-spacing: 0.02em;
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 0.625rem;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  font-weight: 600;
+}
+
+/* Tables */
+.table th {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* Badge overrides */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* State badges */
+.state-notified   { background-color: #6c757d; }
+.state-quoted     { background-color: #0d6efd; }
+.state-reviewing  { background-color: #fd7e14; }
+.state-implemented { background-color: #198754; }
+.state-rejected   { background-color: #dc3545; }
+.state-assumed    { background-color: #ffc107; color: #000; }
+
+/* Deadline overdue row */
+.table-danger td {
+  background-color: rgba(220, 53, 69, 0.07) !important;
+}
+
+/* Footer */
+.footer {
+  font-size: 0.8125rem;
+}
+
+/* Form labels */
+label {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* HTMX indicator */
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator {
+  display: inline-block;
+}
+
+/* Dashboard stat cards */
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+}

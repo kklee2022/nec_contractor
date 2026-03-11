@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Log Communication — NEC4{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.pk %}">{{ project.reference }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'communications:list' project.pk %}">Communications</a></li>
+    <li class="breadcrumb-item active">Log Communication</li>
+  </ol>
+</nav>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-chat-text"></i> Log Communication (NEC4 Clause 13)</h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-warning small">
+          <i class="bi bi-exclamation-triangle"></i>
+          <strong>Clause 13.7:</strong> CE Notifications and Early Warnings must be communicated separately —
+          one notice per communication.
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <a href="{% url 'communications:list' project.pk %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-info text-white">
+              <i class="bi bi-send"></i> Log Communication
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

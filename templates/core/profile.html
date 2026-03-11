@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Profile — NEC4{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-3">
+  <div class="col-lg-7">
+    <h3><i class="bi bi-person-circle"></i> My Profile</h3>
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-4 gap-3">
+          {% if user.avatar %}
+          <img src="{{ user.avatar.url }}" class="rounded-circle" width="72" height="72" style="object-fit:cover">
+          {% else %}
+          <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold fs-3"
+               style="width:72px;height:72px">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          </div>
+          {% endif %}
+          <div>
+            <h5 class="mb-0">{{ user.get_full_name|default:user.username }}</h5>
+            <p class="text-muted mb-0">{{ user.email }}</p>
+            <span class="badge bg-primary">{{ user.get_role_display }}</span>
+            {% if user.organisation %}
+            <span class="badge bg-light text-dark border ms-1">{{ user.organisation }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

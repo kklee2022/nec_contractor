@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} — NEC4 ECC Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-7">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'core:people_list' %}">People</a></li>
+        <li class="breadcrumb-item active">{{ title }}</li>
+      </ol>
+    </nav>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h4 class="mb-0">
+          <i class="bi {% if is_new %}bi-person-plus{% else %}bi-person-gear{% endif %}"></i>
+          {{ title }}
+        </h4>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row">
+            <div class="col-sm-6">{{ form.first_name|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.last_name|as_crispy_field }}</div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-6">{{ form.username|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.email|as_crispy_field }}</div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-6">{{ form.role|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.organisation|as_crispy_field }}</div>
+          </div>
+
+          {{ form.phone|as_crispy_field }}
+
+          <hr class="my-3">
+          <h6 class="text-muted mb-3">
+            <i class="bi bi-key"></i>
+            {% if is_new %}Set Password{% else %}Change Password{% endif %}
+          </h6>
+          <div class="row">
+            <div class="col-sm-6">{{ form.password|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.confirm_password|as_crispy_field }}</div>
+          </div>
+
+          {% if not is_new %}
+          <hr class="my-3">
+          {{ form.is_active|as_crispy_field }}
+          {% endif %}
+
+          <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'core:people_list' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i>
+              {% if is_new %}Create Person{% else %}Save Changes{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

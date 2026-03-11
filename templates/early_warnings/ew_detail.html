@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ ew.reference }} — Early Warning{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' ew.project.pk %}">{{ ew.project.reference }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'early_warnings:list' ew.project.pk %}">EW Register</a></li>
+    <li class="breadcrumb-item active">{{ ew.reference }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle text-warning"></i> {{ ew.reference }}</h5>
+        <span class="badge
+          {% if ew.status == 'open' %}bg-danger
+          {% elif ew.status == 'under_review' %}bg-warning text-dark
+          {% elif ew.status == 'actioned' %}bg-info
+          {% else %}bg-success{% endif %} fs-6">{{ ew.get_status_display }}</span>
+      </div>
+      <div class="card-body">
+        <h6 class="text-muted">Description</h6>
+        <p>{{ ew.description }}</p>
+        <h6 class="text-muted">Potential Impact</h6>
+        <p>{{ ew.potential_impact }}</p>
+        {% if ew.mitigation %}
+        <h6 class="text-muted">Mitigation</h6>
+        <p>{{ ew.mitigation }}</p>
+        {% endif %}
+        {% if ew.risk_reduction_meeting_date %}
+        <h6 class="text-muted">Risk Reduction Meeting</h6>
+        <p><strong>Date:</strong> {{ ew.risk_reduction_meeting_date }}</p>
+        {% if ew.risk_reduction_meeting_notes %}
+        <p>{{ ew.risk_reduction_meeting_notes }}</p>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Audit Log -->
+    <div class="card shadow-sm">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-clock-history"></i> Audit Trail</h6></div>
+      <div class="card-body p-0">
+        {% with ew.history.all as logs %}
+        {% if logs %}
+        <ul class="list-group list-group-flush">
+          {% for log in logs %}
+          <li class="list-group-item small">
+            <span class="text-muted">{{ log.timestamp|date:"d M Y H:i" }}</span>
+            &mdash; {{ log.actor }} &mdash; {{ log.get_action_display }}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="p-3 text-muted mb-0">No audit entries.</p>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header"><h6 class="mb-0">Details</h6></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5">Project</dt><dd class="col-sm-7">{{ ew.project.reference }}</dd>
+          <dt class="col-sm-5">Raised By</dt><dd class="col-sm-7">{{ ew.raised_by.get_full_name }}</dd>
+          <dt class="col-sm-5">Party</dt><dd class="col-sm-7">{{ ew.get_raised_by_party_display }}</dd>
+          <dt class="col-sm-5">Date</dt><dd class="col-sm-7">{{ ew.created_at|date:"d M Y" }}</dd>
+          {% if ew.resolved_date %}
+          <dt class="col-sm-5">Resolved</dt><dd class="col-sm-7">{{ ew.resolved_date }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <!-- Update Form -->
+    {% if user.is_pm or user.is_contractor or user.is_admin_user %}
+    <div class="card shadow-sm">
+      <div class="card-header"><h6 class="mb-0">Update Status</h6></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'early_warnings:update' ew.pk %}">
+          {% csrf_token %}
+          {{ update_form|crispy }}
+          <button type="submit" class="btn btn-primary w-100 mt-2">Update</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

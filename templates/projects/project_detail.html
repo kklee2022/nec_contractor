@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.reference }} — NEC4 ECC{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+    <li class="breadcrumb-item active">{{ project.reference }}</li>
+  </ol>
+</nav>
+
+<div class="row mb-4 align-items-start">
+  <div class="col">
+    <h2>{{ project.name }}</h2>
+    <p class="text-muted">{{ project.reference }}</p>
+  </div>
+  {% if user.is_pm or user.is_admin_user %}
+  <div class="col-auto">
+    <a href="{% url 'projects:update' project.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-pencil"></i> Edit
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Key Info -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted mb-3">Contract Parties</h6>
+        <p class="mb-1"><strong>Project Manager:</strong> {{ project.project_manager.get_full_name }}</p>
+        <p class="mb-1"><strong>Contractor:</strong> {{ project.contractor.get_full_name }}</p>
+        {% if project.supervisor %}
+        <p class="mb-0"><strong>Supervisor:</strong> {{ project.supervisor.get_full_name }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted mb-3">Dates</h6>
+        <p class="mb-1"><strong>Start:</strong> {{ project.start_date }}</p>
+        <p class="mb-1"><strong>Completion:</strong> {{ project.completion_date }}</p>
+        <p class="mb-0"><strong>Days Remaining:</strong>
+          <span class="{% if project.days_remaining < 0 %}text-danger fw-bold{% elif project.days_remaining < 14 %}text-warning fw-bold{% endif %}">
+            {{ project.days_remaining }} days
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="text-muted mb-3">Financial</h6>
+        <p class="mb-1"><strong>Contract Sum:</strong> £{{ project.contract_sum|floatformat:2 }}</p>
+        <p class="mb-0">
+          <span class="badge
+            {% if project.status == 'active' %}bg-success
+            {% elif project.status == 'suspended' %}bg-danger
+            {% else %}bg-secondary{% endif %} fs-6">
+            {{ project.get_status_display }}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Module Tabs -->
+<ul class="nav nav-tabs mb-3" id="projectTabs">
+  <li class="nav-item">
+    <a class="nav-link active" data-bs-toggle="tab" href="#tab-ews">
+      <i class="bi bi-exclamation-triangle text-warning"></i>
+      Early Warnings
+      <span class="badge bg-warning text-dark ms-1">{{ early_warnings|length }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-ces">
+      <i class="bi bi-arrow-left-right text-danger"></i>
+      Compensation Events
+      <span class="badge bg-danger ms-1">{{ compensation_events|length }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-comm">
+      <i class="bi bi-chat-text text-info"></i> Communications
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-financial">
+      <i class="bi bi-currency-pound text-success"></i> Financial
+    </a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- Early Warnings -->
+  <div class="tab-pane fade show active" id="tab-ews">
+    <div class="d-flex justify-content-end mb-2">
+      <a href="{% url 'early_warnings:create' project.pk %}" class="btn btn-sm btn-warning">
+        <i class="bi bi-plus-lg"></i> Raise Early Warning
+      </a>
+    </div>
+    {% if early_warnings %}
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light"><tr><th>Ref</th><th>Description</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+          {% for ew in early_warnings %}
+          <tr>
+            <td class="fw-semibold">{{ ew.reference }}</td>
+            <td>{{ ew.description|truncatechars:80 }}</td>
+            <td><span class="badge
+              {% if ew.status == 'open' %}bg-danger
+              {% elif ew.status == 'under_review' %}bg-warning text-dark
+              {% else %}bg-success{% endif %}">{{ ew.get_status_display }}</span></td>
+            <td>{{ ew.created_at|date:"d M Y" }}</td>
+            <td><a href="{% url 'early_warnings:detail' ew.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No early warnings raised.</p>
+    {% endif %}
+  </div>
+
+  <!-- Compensation Events -->
+  <div class="tab-pane fade" id="tab-ces">
+    <div class="d-flex justify-content-end mb-2">
+      <a href="{% url 'compensation_events:create' project.pk %}" class="btn btn-sm btn-danger">
+        <i class="bi bi-plus-lg"></i> Notify CE
+      </a>
+    </div>
+    {% if compensation_events %}
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light"><tr><th>Ref</th><th>Clause</th><th>Description</th><th>State</th><th>Deadline</th><th></th></tr></thead>
+        <tbody>
+          {% for ce in compensation_events %}
+          <tr {% if ce.pm_reply_overdue %}class="table-danger"{% endif %}>
+            <td class="fw-semibold">{{ ce.reference }}</td>
+            <td><span class="badge bg-light text-dark border">{{ ce.clause }}</span></td>
+            <td>{{ ce.description|truncatechars:70 }}</td>
+            <td><span class="badge bg-secondary">{{ ce.state|title }}</span></td>
+            <td>
+              {{ ce.pm_reply_deadline|date:"d M Y" }}
+              {% if ce.pm_reply_overdue %}<span class="badge bg-danger ms-1">OVERDUE</span>{% endif %}
+            </td>
+            <td><a href="{% url 'compensation_events:detail' ce.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No compensation events.</p>
+    {% endif %}
+  </div>
+
+  <!-- Communications -->
+  <div class="tab-pane fade" id="tab-comm">
+    <div class="d-flex justify-content-end mb-2">
+      <a href="{% url 'communications:create' project.pk %}" class="btn btn-sm btn-info text-white">
+        <i class="bi bi-plus-lg"></i> Log Communication
+      </a>
+    </div>
+    <a href="{% url 'communications:list' project.pk %}" class="btn btn-outline-secondary btn-sm">
+      View Full Communications Log <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+
+  <!-- Financial -->
+  <div class="tab-pane fade" id="tab-financial">
+    <div class="d-flex gap-2 mb-2">
+      <a href="{% url 'financial:cost_list' project.pk %}" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-list-ul"></i> Defined Costs
+      </a>
+      <a href="{% url 'financial:payment_list' project.pk %}" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-cash-stack"></i> Payment Applications
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

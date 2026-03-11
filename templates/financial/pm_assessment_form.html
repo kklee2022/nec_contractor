@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}PM Assessment — Application #{{ object.application_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+          <i class="bi bi-pen"></i>
+          PM Assessment — Payment Application #{{ object.application_number }}
+        </h5>
+        <small class="text-muted">{{ object.project }}</small>
+      </div>
+      <div class="card-body p-4">
+
+        <!-- Read-only contractor submission info -->
+        <div class="p-3 bg-light rounded mb-4">
+          <div class="row">
+            <div class="col-sm-6">
+              <small class="text-muted d-block">Contractor Amount</small>
+              <strong>£{{ object.contractor_amount|floatformat:2 }}</strong>
+            </div>
+            <div class="col-sm-6">
+              <small class="text-muted d-block">Period End</small>
+              <strong>{{ object.period_end_date }}</strong>
+            </div>
+          </div>
+          {% if object.contractor_notes %}
+          <div class="mt-2">
+            <small class="text-muted d-block">Contractor Notes</small>
+            {{ object.contractor_notes }}
+          </div>
+          {% endif %}
+        </div>
+
+        {% if object.is_overdue %}
+        <div class="alert alert-danger small">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          <strong>Overdue!</strong> This application was submitted on
+          {{ object.submitted_date|date:"d M Y" }} and the 7-day certification
+          deadline (Clause 51) has passed.
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'financial:payment_list' object.project.pk %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check-circle"></i> Submit Assessment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

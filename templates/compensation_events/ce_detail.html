@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ ce.reference }} — Compensation Event{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' ce.project.pk %}">{{ ce.project.reference }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'compensation_events:list' ce.project.pk %}">CE Register</a></li>
+    <li class="breadcrumb-item active">{{ ce.reference }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <!-- CE Details -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ ce.reference }}
+          <span class="badge bg-light text-dark border ms-2">{{ ce.clause }}</span>
+        </h5>
+        <span class="badge
+          {% if ce.state == 'implemented' %}bg-success
+          {% elif ce.state == 'rejected' %}bg-danger
+          {% elif ce.state == 'assumed' %}bg-warning text-dark
+          {% else %}bg-secondary{% endif %} fs-6">{{ ce.state|title }}</span>
+      </div>
+      <div class="card-body">
+        <h6 class="text-muted">Description</h6>
+        <p>{{ ce.description }}</p>
+
+        {% if ce.quotation_detail %}
+        <hr>
+        <h6 class="text-muted">Quotation</h6>
+        <div class="row">
+          <div class="col-sm-4"><strong>Quoted Cost:</strong><br>£{{ ce.quotation_cost|floatformat:2 }}</div>
+          <div class="col-sm-4"><strong>Time Extension:</strong><br>{{ ce.quotation_time_extension }} days</div>
+          <div class="col-sm-4"><strong>Submitted:</strong><br>{{ ce.quotation_submitted_date|date:"d M Y" }}</div>
+        </div>
+        <p class="mt-2">{{ ce.quotation_detail }}</p>
+        {% endif %}
+
+        {% if ce.pm_reply %}
+        <hr>
+        <h6 class="text-muted">PM Response</h6>
+        <p>{{ ce.pm_reply }}</p>
+        {% endif %}
+
+        {% if ce.state == 'implemented' %}
+        <hr>
+        <h6 class="text-muted">Implementation</h6>
+        <div class="row">
+          <div class="col-sm-4"><strong>Final Cost:</strong><br>£{{ ce.implemented_cost|floatformat:2 }}</div>
+          <div class="col-sm-4"><strong>Time Extension:</strong><br>{{ ce.implemented_time_extension }} days</div>
+          <div class="col-sm-4"><strong>Date:</strong><br>{{ ce.implemented_date|date:"d M Y" }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- State Machine Actions -->
+    {% if ce.state == 'notified' and user.is_contractor %}
+    <div class="card shadow-sm mb-3 border-warning">
+      <div class="card-header bg-warning"><h6 class="mb-0">Submit Quotation (Clause 62)</h6></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'compensation_events:submit_quotation' ce.pk %}">
+          {% csrf_token %}
+          {{ quotation_form|crispy }}
+          <button type="submit" class="btn btn-warning"><i class="bi bi-send"></i> Submit Quotation</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if ce.state in 'quoted,pm_reviewing' and user.is_pm %}
+    <div class="card shadow-sm mb-3 border-info">
+      <div class="card-header bg-info text-white"><h6 class="mb-0">PM Review (Clause 62.3)</h6></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'compensation_events:pm_review' ce.pk %}">
+          {% csrf_token %}
+          {{ pm_review_form|crispy }}
+          <button type="submit" class="btn btn-info text-white"><i class="bi bi-check-lg"></i> Submit Response</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if ce.state == 'pm_reviewing' and user.is_pm %}
+    <div class="card shadow-sm mb-3 border-success">
+      <div class="card-header bg-success text-white"><h6 class="mb-0">Implement CE (Clause 65)</h6></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'compensation_events:implement' ce.pk %}">
+          {% csrf_token %}
+          {{ implement_form|crispy }}
+          <button type="submit" class="btn btn-success"><i class="bi bi-check-all"></i> Implement</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header"><h6 class="mb-0">CE Details</h6></div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-sm-5">Project</dt><dd class="col-sm-7">{{ ce.project.reference }}</dd>
+          <dt class="col-sm-5">Notified By</dt><dd class="col-sm-7">{{ ce.notified_by.get_full_name }}</dd>
+          <dt class="col-sm-5">Notified</dt><dd class="col-sm-7">{{ ce.notification_date|date:"d M Y" }}</dd>
+          <dt class="col-sm-5">PM Deadline</dt>
+          <dd class="col-sm-7 {% if ce.pm_reply_overdue %}text-danger fw-bold{% endif %}">
+            {{ ce.pm_reply_deadline|date:"d M Y" }}
+            {% if ce.pm_reply_overdue %}<br><span class="badge bg-danger">OVERDUE</span>{% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- FSM State Flow -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-header"><h6 class="mb-0">State Progress</h6></div>
+      <div class="card-body p-2">
+        {% for step in "notified,quoted,pm_reviewing,implemented"|split:"," %}
+        <div class="d-flex align-items-center mb-1">
+          <span class="me-2
+            {% if ce.state == step %}text-primary fw-bold
+            {% elif ce.state == 'implemented' or ce.state == 'pm_reviewing' and step != 'implemented' %}text-success
+            {% else %}text-muted{% endif %}">
+            <i class="bi bi-{% if ce.state == step %}arrow-right-circle-fill{% elif ce.state == 'implemented' %}check-circle-fill{% else %}circle{% endif %}"></i>
+          </span>
+          <small class="{% if ce.state == step %}fw-bold{% endif %}">{{ step|title }}</small>
+        </div>
+        {% endfor %}
+        {% if ce.state == 'rejected' %}
+        <div class="text-danger"><i class="bi bi-x-circle-fill"></i> <small>Rejected</small></div>
+        {% endif %}
+        {% if ce.state == 'assumed' %}
+        <div class="text-warning"><i class="bi bi-exclamation-circle-fill"></i> <small>Assumed (Cl.61.4)</small></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

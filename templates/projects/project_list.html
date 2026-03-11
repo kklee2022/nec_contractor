@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Projects — NEC4 ECC{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+  <div class="col">
+    <h2><i class="bi bi-folder2-open"></i> Projects</h2>
+  </div>
+  {% if user.is_pm or user.is_admin_user %}
+  <div class="col-auto">
+    <a href="{% url 'projects:create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> New Project
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if projects %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Reference</th><th>Name</th><th>Status</th>
+            <th>PM</th><th>Contractor</th><th>Start</th><th>Completion</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in projects %}
+          <tr>
+            <td class="fw-semibold">{{ project.reference }}</td>
+            <td>{{ project.name }}</td>
+            <td>
+              <span class="badge
+                {% if project.status == 'active' %}bg-success
+                {% elif project.status == 'suspended' %}bg-danger
+                {% else %}bg-secondary{% endif %}">
+                {{ project.get_status_display }}
+              </span>
+            </td>
+            <td>{{ project.project_manager.get_full_name }}</td>
+            <td>{{ project.contractor.get_full_name }}</td>
+            <td>{{ project.start_date }}</td>
+            <td>{{ project.completion_date }}</td>
+            <td>
+              <a href="{% url 'projects:detail' project.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-folder2 fs-1"></i>
+      <p class="mt-2">No projects found. {% if user.is_pm %}Create your first project above.{% endif %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

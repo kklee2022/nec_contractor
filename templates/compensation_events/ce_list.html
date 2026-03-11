@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Compensation Events — {{ project.reference }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+  <div class="col">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.pk %}">{{ project.reference }}</a></li>
+        <li class="breadcrumb-item active">Compensation Events</li>
+      </ol>
+    </nav>
+    <h2><i class="bi bi-arrow-left-right text-danger"></i> Compensation Events</h2>
+  </div>
+  <div class="col-auto">
+    <a href="{% url 'compensation_events:create' project.pk %}" class="btn btn-danger">
+      <i class="bi bi-plus-lg"></i> Notify CE
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    {% if ces %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Reference</th><th>Clause</th><th>Description</th>
+            <th>State</th><th>PM Deadline</th><th>Quoted</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ce in ces %}
+          <tr {% if ce.pm_reply_overdue %}class="table-danger"{% endif %}>
+            <td class="fw-semibold">{{ ce.reference }}</td>
+            <td><small>{{ ce.clause }}</small></td>
+            <td>{{ ce.description|truncatechars:70 }}</td>
+            <td>
+              <span class="badge
+                {% if ce.state == 'implemented' %}bg-success
+                {% elif ce.state == 'rejected' %}bg-danger
+                {% elif ce.state == 'assumed' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ ce.state|title }}
+              </span>
+            </td>
+            <td>
+              {{ ce.pm_reply_deadline|date:"d M Y" }}
+              {% if ce.pm_reply_overdue %}<span class="badge bg-danger ms-1">OVERDUE</span>{% endif %}
+            </td>
+            <td>{% if ce.quotation_cost %}£{{ ce.quotation_cost|floatformat:0 }}{% else %}—{% endif %}</td>
+            <td><a href="{% url 'compensation_events:detail' ce.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-check-circle fs-1 text-success"></i>
+      <p class="mt-2">No compensation events on this project.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

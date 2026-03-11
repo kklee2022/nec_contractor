@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Remove Member — {{ org.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm mt-4">
+      <div class="card-body p-5 text-center">
+        <i class="bi bi-person-dash text-danger display-4 d-block mb-3"></i>
+        <h4 class="fw-bold">Remove Member</h4>
+        <p class="text-muted">
+          Remove <strong>{{ target.user.get_full_name|default:target.user.username }}</strong>
+          from <strong>{{ org.name }}</strong>?
+        </p>
+        <p class="text-muted small">
+          Their account will remain; they will simply lose access to this organisation.
+        </p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <a href="{% url 'subscriptions:member_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-person-dash"></i> Remove
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

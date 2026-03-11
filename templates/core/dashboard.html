@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — NEC4 ECC{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+  <div class="col">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+    <p class="text-muted mb-0">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong>
+      &mdash; {{ user.organisation }}</p>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 rounded p-3">
+          <i class="bi bi-folder2-open fs-3 text-primary"></i>
+        </div>
+        <div>
+          <div class="fs-4 fw-bold">{{ projects|length }}</div>
+          <div class="text-muted small">Active Projects</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-warning bg-opacity-10 rounded p-3">
+          <i class="bi bi-exclamation-triangle fs-3 text-warning"></i>
+        </div>
+        <div>
+          <div class="fs-4 fw-bold">{{ recent_ews|length }}</div>
+          <div class="text-muted small">Open Early Warnings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-danger bg-opacity-10 rounded p-3">
+          <i class="bi bi-arrow-left-right fs-3 text-danger"></i>
+        </div>
+        <div>
+          <div class="fs-4 fw-bold">{{ open_ces|length }}</div>
+          <div class="text-muted small">Open Comp. Events</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent Early Warnings -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-exclamation-triangle text-warning"></i> Recent Early Warnings</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_ews %}
+        <ul class="list-group list-group-flush">
+          {% for ew in recent_ews %}
+          <li class="list-group-item d-flex justify-content-between align-items-start py-3">
+            <div>
+              <div class="fw-semibold">
+                <a href="{% url 'early_warnings:detail' ew.pk %}" class="text-decoration-none">
+                  {{ ew.reference }}
+                </a>
+                <span class="text-muted small ms-1">{{ ew.project.reference }}</span>
+              </div>
+              <small class="text-muted">{{ ew.description|truncatechars:60 }}</small>
+            </div>
+            <span class="badge
+              {% if ew.status == 'open' %}bg-danger
+              {% elif ew.status == 'under_review' %}bg-warning text-dark
+              {% else %}bg-success{% endif %}">
+              {{ ew.get_status_display }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted p-3 mb-0">No open early warnings.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Open Compensation Events -->
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-arrow-left-right text-danger"></i> Open Compensation Events</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if open_ces %}
+        <ul class="list-group list-group-flush">
+          {% for ce in open_ces %}
+          <li class="list-group-item d-flex justify-content-between align-items-start py-3">
+            <div>
+              <div class="fw-semibold">
+                <a href="{% url 'compensation_events:detail' ce.pk %}" class="text-decoration-none">
+                  {{ ce.reference }}
+                </a>
+                <span class="text-muted small ms-1">{{ ce.project.reference }}</span>
+              </div>
+              <small class="text-muted">{{ ce.description|truncatechars:60 }}</small>
+              {% if ce.pm_reply_overdue %}
+              <span class="badge bg-danger ms-1">Deadline Overdue</span>
+              {% endif %}
+            </div>
+            <span class="badge bg-secondary">{{ ce.state|title }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted p-3 mb-0">No open compensation events.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects -->
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-folder2-open text-primary"></i> Your Projects</h6>
+        {% if user.is_pm %}
+        <a href="{% url 'projects:create' %}" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus-lg"></i> New Project
+        </a>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if projects %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Reference</th>
+                <th>Project Name</th>
+                <th>Status</th>
+                <th>Completion</th>
+                <th>Days Remaining</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for project in projects %}
+              <tr>
+                <td class="fw-semibold">{{ project.reference }}</td>
+                <td>{{ project.name }}</td>
+                <td>
+                  <span class="badge
+                    {% if project.status == 'active' %}bg-success
+                    {% elif project.status == 'suspended' %}bg-danger
+                    {% else %}bg-secondary{% endif %}">
+                    {{ project.get_status_display }}
+                  </span>
+                </td>
+                <td>{{ project.completion_date }}</td>
+                <td>
+                  {% if project.days_remaining is not None %}
+                    {% if project.days_remaining < 0 %}
+                    <span class="text-danger fw-bold">{{ project.days_remaining }} days</span>
+                    {% elif project.days_remaining < 14 %}
+                    <span class="text-warning fw-bold">{{ project.days_remaining }} days</span>
+                    {% else %}
+                    {{ project.days_remaining }} days
+                    {% endif %}
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'projects:detail' project.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted p-3 mb-0">You are not assigned to any projects yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

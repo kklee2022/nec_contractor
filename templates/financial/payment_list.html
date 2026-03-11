@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Applications — {{ project }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.pk %}">{{ project.reference }}</a></li>
+        <li class="breadcrumb-item active">Payment Applications</li>
+      </ol>
+    </nav>
+    <h2 class="mb-0"><i class="bi bi-cash-stack"></i> Payment Applications</h2>
+    <p class="text-muted small mb-0">{{ project.name }}</p>
+  </div>
+  {% if request.user.is_contractor %}
+  <a href="{% url 'financial:payment_create' project.pk %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> Submit Application
+  </a>
+  {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    {% if applications %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Application #</th>
+            <th>Period End</th>
+            <th class="text-end">Contractor Amount</th>
+            <th class="text-end">PM Assessed</th>
+            <th>Status</th>
+            <th>Overdue?</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+            <td class="fw-semibold">#{{ app.application_number }}</td>
+            <td class="text-muted small">{{ app.period_end_date }}</td>
+            <td class="text-end">£{{ app.contractor_amount|floatformat:2 }}</td>
+            <td class="text-end">
+              {% if app.pm_assessed_amount %}
+              £{{ app.pm_assessed_amount|floatformat:2 }}
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge
+                {% if app.status == 'submitted' %}bg-warning text-dark
+                {% elif app.status == 'pm_assessed' %}bg-success
+                {% elif app.status == 'certified' %}bg-primary
+                {% else %}bg-secondary{% endif %}">
+                {{ app.get_status_display }}
+              </span>
+            </td>
+            <td>
+              {% if app.is_overdue %}
+              <span class="badge bg-danger">
+                <i class="bi bi-exclamation-triangle"></i> Overdue
+              </span>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if request.user.is_pm and app.status == 'submitted' %}
+              <a href="{% url 'financial:pm_assessment' app.pk %}"
+                 class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pen"></i> Assess
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-cash-stack fs-1 d-block mb-2 opacity-25"></i>
+      <p>No payment applications submitted yet.</p>
+      {% if request.user.is_contractor %}
+      <a href="{% url 'financial:payment_create' project.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg"></i> Submit First Application
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

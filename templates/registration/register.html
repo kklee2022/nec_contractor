@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Account — NEC4 ECC Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow border-0 mt-4">
+      <div class="card-body p-5">
+        <div class="text-center mb-4">
+          <i class="bi bi-building-add fs-1 text-primary"></i>
+          <h2 class="mt-2 fw-bold">Create Your Account</h2>
+          <p class="text-muted">Get started on the <strong>Free plan</strong> — no credit card required.</p>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row">
+            <div class="col-sm-6">{{ form.first_name|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.last_name|as_crispy_field }}</div>
+          </div>
+          {{ form.email|as_crispy_field }}
+          {{ form.organisation_name|as_crispy_field }}
+          <hr class="my-3">
+          {{ form.username|as_crispy_field }}
+          <div class="row">
+            <div class="col-sm-6">{{ form.password1|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.password2|as_crispy_field }}</div>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-person-plus"></i> Create Account
+            </button>
+          </div>
+        </form>
+
+        <hr class="my-4">
+        <div class="text-center">
+          <p class="mb-0 text-muted small">
+            Already have an account?
+            <a href="{% url 'login' %}" class="fw-semibold">Sign in</a>
+          </p>
+        </div>
+
+        <!-- Free plan highlights -->
+        <div class="mt-4 p-3 bg-light rounded border">
+          <p class="small fw-semibold mb-2 text-muted">FREE PLAN INCLUDES:</p>
+          <ul class="list-unstyled small mb-0">
+            <li><i class="bi bi-check-circle text-success me-1"></i> 1 Active Project</li>
+            <li><i class="bi bi-check-circle text-success me-1"></i> Up to 3 Team Members</li>
+            <li><i class="bi bi-check-circle text-success me-1"></i> Full NEC4 ECC Features</li>
+            <li><i class="bi bi-check-circle text-success me-1"></i> Early Warnings &amp; CE Register</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

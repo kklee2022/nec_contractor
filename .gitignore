@@ -1,0 +1,38 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# macOS / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# uv
+.python-version
+uv.lock
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/

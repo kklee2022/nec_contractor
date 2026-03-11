@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if person.is_active %}Deactivate{% else %}Activate{% endif %} {{ person.get_full_name }} — NEC4 ECC Platform
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm mt-4">
+      <div class="card-body p-5 text-center">
+        <i class="bi {% if person.is_active %}bi-person-x text-danger{% else %}bi-person-check text-success{% endif %} display-4 mb-3 d-block"></i>
+
+        {% if person.is_active %}
+        <h4 class="fw-bold">Deactivate Account</h4>
+        <p class="text-muted">
+          Are you sure you want to <strong>deactivate</strong>
+          <span class="fw-semibold">{{ person.get_full_name|default:person.username }}</span>?
+        </p>
+        <p class="text-muted small">
+          This will prevent them from logging in. You can reactivate them at any time.
+        </p>
+        {% else %}
+        <h4 class="fw-bold">Activate Account</h4>
+        <p class="text-muted">
+          Are you sure you want to <strong>reactivate</strong>
+          <span class="fw-semibold">{{ person.get_full_name|default:person.username }}</span>?
+        </p>
+        <p class="text-muted small">
+          This will restore their ability to log in to the platform.
+        </p>
+        {% endif %}
+
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <a href="{% url 'core:people_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Cancel
+          </a>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit"
+                    class="btn {% if person.is_active %}btn-danger{% else %}btn-success{% endif %}">
+              <i class="bi {% if person.is_active %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
+              {% if person.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

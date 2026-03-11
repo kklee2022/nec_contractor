@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Change Role — {{ target.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm mt-4">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0"><i class="bi bi-shield-half"></i> Change Organisation Role</h5>
+      </div>
+      <div class="card-body p-4">
+        <p class="text-muted mb-3">
+          Updating role for
+          <strong>{{ target.user.get_full_name|default:target.user.username }}</strong>
+        </p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'subscriptions:member_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Role</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
