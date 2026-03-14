@@ -51,7 +51,7 @@ class DefinedCost(TimeStampedModel):
         verbose_name_plural = 'Defined Costs'
 
     def __str__(self):
-        return f'{self.project.reference} | {self.category} | £{self.amount}'
+        return f'{self.project.reference} | {self.category} | HKD{self.amount}'
 
 
 class PaymentApplication(TimeStampedModel):

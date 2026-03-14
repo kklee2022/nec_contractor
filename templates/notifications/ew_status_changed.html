@@ -1,0 +1,15 @@
+Early Warning Status Updated — {{ ew.reference }}
+
+Project: {{ ew.project.reference }} — {{ ew.project.name }}
+Reference: {{ ew.reference }}
+
+Status changed: {{ old_status|title }} → {{ ew.get_status_display }}
+
+Description: {{ ew.description|truncatewords:30 }}
+
+{% if ew.resolved_date %}
+Resolved on: {{ ew.resolved_date|date:"d M Y" }}
+{% endif %}
+
+---
+This is an automated notification from the NEC4 ECC Platform.

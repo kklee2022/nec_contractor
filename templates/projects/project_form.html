@@ -9,23 +9,104 @@
     <li class="breadcrumb-item active">{% if object %}Edit {{ object.reference }}{% else %}New Project{% endif %}</li>
   </ol>
 </nav>
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card shadow-sm">
-      <div class="card-header"><h5 class="mb-0">{% if object %}Edit Project{% else %}Create New Project{% endif %}</h5></div>
-      <div class="card-body">
-        <form method="post">
-          {% csrf_token %}
-          {{ form|crispy }}
-          <div class="d-flex justify-content-end gap-2 mt-3">
-            <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-lg"></i> {% if object %}Save Changes{% else %}Create Project{% endif %}
-            </button>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="row g-4">
+
+    {# ── Left column: Project info + Dates ── #}
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-folder2-open me-1"></i> Project Information</h6></div>
+        <div class="card-body">
+          {{ form.name|as_crispy_field }}
+          {{ form.reference|as_crispy_field }}
+          {{ form.description|as_crispy_field }}
+          {{ form.status|as_crispy_field }}
+        </div>
+      </div>
+      <div class="card shadow-sm">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-calendar3 me-1"></i> Dates &amp; Contract Sum</h6></div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm-6">{{ form.start_date|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.completion_date|as_crispy_field }}</div>
           </div>
-        </form>
+          {{ form.contract_sum|as_crispy_field }}
+        </div>
+      </div>
+
+      <div class="card shadow-sm mt-3">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-gear me-1"></i> Reference Number Settings</h6></div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm-6">{{ form.ce_reference_prefix|as_crispy_field }}</div>
+            <div class="col-sm-6">{{ form.ew_reference_prefix|as_crispy_field }}</div>
+          </div>
+          <p class="text-muted small mb-0">These prefixes are used to auto-generate CE and EW reference numbers (e.g. <code>CNCE-0001</code>, <code>CNEW-0001</code>).</p>
+        </div>
       </div>
     </div>
+
+    {# ── Right column: Contract Parties ── #}
+    <div class="col-lg-7">
+
+      {# Project Manager #}
+      <div class="card shadow-sm mb-3 border-primary">
+        <div class="card-header" style="background:#e8f0fe">
+          <h6 class="mb-0 text-primary">
+            <i class="bi bi-briefcase me-1"></i> Project Manager
+            <small class="fw-normal text-muted ms-2">NEC4 Cl.14.2 — external company</small>
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-sm-7">{{ form.pm_company|as_crispy_field }}</div>
+            <div class="col-sm-5">{{ form.pm_contact_email|as_crispy_field }}</div>
+          </div>
+          {{ form.pm_representative|as_crispy_field }}
+        </div>
+      </div>
+
+      {# Supervisor #}
+      <div class="card shadow-sm mb-3 border-success">
+        <div class="card-header" style="background:#e8f5e9">
+          <h6 class="mb-0 text-success">
+            <i class="bi bi-eye me-1"></i> Supervisor
+            <small class="fw-normal text-muted ms-2">NEC4 Cl.14.4 — external company</small>
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-sm-7">{{ form.supervisor_company|as_crispy_field }}</div>
+            <div class="col-sm-5">{{ form.supervisor_contact_email|as_crispy_field }}</div>
+          </div>
+          {{ form.supervisor_representative|as_crispy_field }}
+        </div>
+      </div>
+
+      {# Contractor #}
+      <div class="card shadow-sm border-warning">
+        <div class="card-header" style="background:#fffde7">
+          <h6 class="mb-0 text-warning">
+            <i class="bi bi-hard-hat me-1"></i> Contractor
+            <small class="fw-normal text-muted ms-2">NEC4 Cl.11.2(6)</small>
+          </h6>
+        </div>
+        <div class="card-body">
+          {{ form.contractor_representative|as_crispy_field }}
+          {{ form.contractor|as_crispy_field }}
+        </div>
+      </div>
+
+    </div>
   </div>
-</div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-lg"></i> {% if object %}Save Changes{% else %}Create Project{% endif %}
+    </button>
+  </div>
+</form>
 {% endblock %}

@@ -36,3 +36,4 @@ uv.lock
 .coverage
 htmlcov/
 .pytest_cache/
+reference/

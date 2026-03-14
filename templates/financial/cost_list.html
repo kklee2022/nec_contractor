@@ -26,7 +26,7 @@
 <div class="row g-3 mb-4">
   <div class="col-sm-4">
     <div class="card border-0 shadow-sm text-center py-3">
-      <div class="fs-4 fw-bold text-success">£{{ total|floatformat:2 }}</div>
+      <div class="fs-4 fw-bold text-success">HKD{{ total|floatformat:2 }}</div>
       <div class="text-muted small">Total Defined Costs</div>
     </div>
   </div>
@@ -58,7 +58,7 @@
             <td class="text-muted small">{{ cost.date }}</td>
             <td><span class="badge bg-secondary">{{ cost.get_category_display }}</span></td>
             <td>{{ cost.description }}</td>
-            <td class="text-end fw-semibold">£{{ cost.amount|floatformat:2 }}</td>
+            <td class="text-end fw-semibold">HKD{{ cost.amount|floatformat:2 }}</td>
             <td class="text-muted small">{{ cost.entered_by.get_full_name|default:cost.entered_by.username }}</td>
           </tr>
           {% endfor %}
@@ -66,7 +66,7 @@
         <tfoot class="table-light">
           <tr>
             <td colspan="3" class="text-end fw-bold">Total</td>
-            <td class="text-end fw-bold text-success">£{{ total|floatformat:2 }}</td>
+            <td class="text-end fw-bold text-success">HKD{{ total|floatformat:2 }}</td>
             <td></td>
           </tr>
         </tfoot>

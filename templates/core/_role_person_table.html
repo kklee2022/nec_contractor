@@ -1,0 +1,55 @@
+<div class="card border-0 shadow-sm" id="people-table-card">
+  <div class="card-header bg-{{ config.color }} {% if config.color == 'warning' %}text-dark{% else %}text-white{% endif %} py-3">
+    <h5 class="mb-0">
+      <i class="bi {{ config.icon }} me-2"></i>
+      {{ config.plural }} Directory
+      {% if search %}<small class="opacity-75 ms-2">— "{{ search }}"</small>{% endif %}
+    </h5>
+  </div>
+  <div class="card-body p-0">
+    {% if people %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            {% if role_slug == 'contractors' %}
+            <th>Job Title / Role</th>
+            <th>Company</th>
+            {% else %}
+            <th>Organisation</th>
+            {% endif %}
+            <th>Phone</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for person in people %}
+          {% include 'core/_role_person_row.html' %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi {{ config.icon }} display-4 d-block mb-3 opacity-25"></i>
+      <p class="mb-2">
+        {% if search %}
+          No {{ config.plural|lower }} match "<strong>{{ search }}</strong>".
+        {% else %}
+          No {{ config.plural|lower }} have been added yet.
+        {% endif %}
+      </p>
+      {% if not search %}
+      <a href="{% url 'core:role_person_create' role_slug=role_slug %}"
+         class="btn btn-sm btn-{{ config.color }}">
+        <i class="bi bi-person-plus me-1"></i> Add First {{ config.label }}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>

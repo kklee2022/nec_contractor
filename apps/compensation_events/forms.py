@@ -13,7 +13,7 @@ class CompensationEventForm(forms.ModelForm):
 
 
 class QuotationForm(forms.Form):
-    quotation_cost = forms.DecimalField(max_digits=14, decimal_places=2, label='Quoted Cost (£)')
+    quotation_cost = forms.DecimalField(max_digits=14, decimal_places=2, label='Quoted Cost (HKD)')
     quotation_time_extension = forms.IntegerField(
         min_value=0, label='Time Extension (days)',
         help_text='Enter 0 if no time extension is claimed'
@@ -27,5 +27,5 @@ class PMReviewForm(forms.Form):
 
 
 class ImplementForm(forms.Form):
-    implemented_cost = forms.DecimalField(max_digits=14, decimal_places=2, label='Final Cost (£)')
+    implemented_cost = forms.DecimalField(max_digits=14, decimal_places=2, label='Final Cost (HKD)')
     implemented_time_extension = forms.IntegerField(min_value=0, label='Agreed Time Extension (days)')

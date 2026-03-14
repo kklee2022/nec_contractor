@@ -15,8 +15,11 @@
     <h2>{{ project.name }}</h2>
     <p class="text-muted">{{ project.reference }}</p>
   </div>
-  {% if user.is_pm or user.is_admin_user %}
-  <div class="col-auto">
+  {% if user.is_contractor or user.is_admin_user %}
+  <div class="col-auto d-flex gap-2">
+    <a href="{% url 'projects:contract_data' project.pk %}" class="btn btn-outline-dark btn-sm">
+      <i class="bi bi-file-text"></i> Contract Data
+    </a>
     <a href="{% url 'projects:update' project.pk %}" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-pencil"></i> Edit
     </a>
@@ -30,10 +33,31 @@
     <div class="card shadow-sm">
       <div class="card-body">
         <h6 class="text-muted mb-3">Contract Parties</h6>
-        <p class="mb-1"><strong>Project Manager:</strong> {{ project.project_manager.get_full_name }}</p>
-        <p class="mb-1"><strong>Contractor:</strong> {{ project.contractor.get_full_name }}</p>
-        {% if project.supervisor %}
-        <p class="mb-0"><strong>Supervisor:</strong> {{ project.supervisor.get_full_name }}</p>
+        <p class="mb-1">
+          <i class="bi bi-briefcase text-primary me-1"></i>
+          <strong>Project Manager:</strong>
+          {{ project.pm_company|default:"—" }}
+          {% if project.pm_representative %}<small class="text-muted">({{ project.pm_representative }})</small>{% endif %}
+        </p>
+        <p class="mb-1">
+          <i class="bi bi-eye text-success me-1"></i>
+          <strong>Supervisor:</strong>
+          {{ project.supervisor_company|default:"—" }}
+          {% if project.supervisor_representative %}<small class="text-muted">({{ project.supervisor_representative }})</small>{% endif %}
+        </p>
+        <p class="mb-1">
+          <i class="bi bi-hard-hat text-warning me-1"></i>
+          <strong>Contractor:</strong>
+          {% if project.contractor_representative %}{{ project.contractor_representative.get_full_name }}{% else %}<span class="text-muted">—</span>{% endif %}
+        </p>
+        {% if project.contractor %}
+        <p class="mb-0">
+          <i class="bi bi-building text-secondary me-1"></i>
+          <strong>Contractor Co.:</strong>
+          <a href="{% url 'core:contractor_org_detail' %}" class="text-decoration-none">
+            {{ project.contractor.name }}
+          </a>
+        </p>
         {% endif %}
       </div>
     </div>
@@ -56,7 +80,7 @@
     <div class="card shadow-sm">
       <div class="card-body">
         <h6 class="text-muted mb-3">Financial</h6>
-        <p class="mb-1"><strong>Contract Sum:</strong> £{{ project.contract_sum|floatformat:2 }}</p>
+        <p class="mb-1"><strong>Contract Sum:</strong> HKD{{ project.contract_sum|floatformat:2 }}</p>
         <p class="mb-0">
           <span class="badge
             {% if project.status == 'active' %}bg-success

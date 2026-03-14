@@ -1,0 +1,50 @@
+<div class="card shadow-sm" id="ew-table-card">
+  <div class="card-body p-0">
+    {% if early_warnings %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Reference</th><th>Description</th><th>Raised By</th>
+            <th>Party</th><th>Status</th><th>Date</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ew in early_warnings %}
+          <tr>
+            <td class="fw-semibold">{{ ew.reference }}</td>
+            <td>{{ ew.description|truncatechars:80 }}</td>
+            <td>{{ ew.raised_by.get_full_name }}</td>
+            <td>{{ ew.get_raised_by_party_display }}</td>
+            <td>
+              <span class="badge
+                {% if ew.status == 'open' %}bg-danger
+                {% elif ew.status == 'under_review' %}bg-warning text-dark
+                {% elif ew.status == 'actioned' %}bg-info
+                {% else %}bg-success{% endif %}">
+                {{ ew.get_status_display }}
+              </span>
+            </td>
+            <td>{{ ew.created_at|date:"d M Y" }}</td>
+            <td>
+              <a href="{% url 'early_warnings:detail' ew.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      <i class="bi bi-check-circle fs-1 text-success"></i>
+      <p class="mt-2">
+        {% if search or status_filter %}
+          No early warnings match your filters.
+        {% else %}
+          No early warnings on this project.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>

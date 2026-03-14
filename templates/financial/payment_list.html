@@ -43,10 +43,10 @@
           <tr>
             <td class="fw-semibold">#{{ app.application_number }}</td>
             <td class="text-muted small">{{ app.period_end_date }}</td>
-            <td class="text-end">£{{ app.contractor_amount|floatformat:2 }}</td>
+            <td class="text-end">HKD{{ app.contractor_amount|floatformat:2 }}</td>
             <td class="text-end">
               {% if app.pm_assessed_amount %}
-              £{{ app.pm_assessed_amount|floatformat:2 }}
+              HKD{{ app.pm_assessed_amount|floatformat:2 }}
               {% else %}
               <span class="text-muted">—</span>
               {% endif %}

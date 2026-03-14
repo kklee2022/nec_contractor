@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Contractor Company — NEC4 ECC Platform{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">
+    <i class="bi bi-building text-primary me-2"></i>
+    Contractor Company
+  </h2>
+  {% if user.is_admin_user %}
+  <a href="{% url 'core:contractor_org_edit' %}" class="btn btn-outline-primary">
+    <i class="bi bi-pencil me-1"></i> Edit Details
+  </a>
+  {% endif %}
+</div>
+
+{% if org %}
+<div class="row g-4">
+  {# Company card #}
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-primary text-white py-3">
+        <h5 class="mb-0"><i class="bi bi-building me-2"></i>Company Details</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5">Company Name</dt>
+          <dd class="col-sm-7 fw-semibold">{{ org.name }}</dd>
+
+          {% if org.registration_no %}
+          <dt class="col-sm-5">Reg. No.</dt>
+          <dd class="col-sm-7">{{ org.registration_no }}</dd>
+          {% endif %}
+
+          {% if org.address %}
+          <dt class="col-sm-5">Address</dt>
+          <dd class="col-sm-7">{{ org.address|linebreaksbr }}</dd>
+          {% endif %}
+
+          {% if org.contact_email %}
+          <dt class="col-sm-5">Email</dt>
+          <dd class="col-sm-7">
+            <a href="mailto:{{ org.contact_email }}">{{ org.contact_email }}</a>
+          </dd>
+          {% endif %}
+
+          {% if org.contact_phone %}
+          <dt class="col-sm-5">Phone</dt>
+          <dd class="col-sm-7">{{ org.contact_phone }}</dd>
+          {% endif %}
+
+          {% if org.website %}
+          <dt class="col-sm-5">Website</dt>
+          <dd class="col-sm-7">
+            <a href="{{ org.website }}" target="_blank" rel="noopener">
+              {{ org.website }}
+            </a>
+          </dd>
+          {% endif %}
+        </dl>
+
+        {% if org.notes %}
+        <hr>
+        <p class="text-muted small mb-0">{{ org.notes }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Staff card #}
+  <div class="col-md-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="bi bi-hard-hat me-2"></i>
+          Contractor Staff
+          <span class="badge bg-white text-primary ms-2">{{ org.active_staff_count }}</span>
+        </h5>
+        <a href="{% url 'core:role_person_create' role_slug='contractors' %}"
+           class="btn btn-sm btn-light text-primary">
+          <i class="bi bi-person-plus me-1"></i> Add Staff
+        </a>
+      </div>
+      {% if staff %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Job Title / Role</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for person in staff %}
+            <tr class="{% if not person.is_active %}table-secondary text-muted{% endif %}">
+              <td class="fw-semibold">{{ person.get_full_name|default:person.username }}</td>
+              <td>{{ person.organisation|default:"—" }}</td>
+              <td><a href="mailto:{{ person.email }}" class="text-decoration-none">{{ person.email }}</a></td>
+              <td>
+                {% if person.is_active %}
+                <span class="badge bg-success">Active</span>
+                {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'core:role_person_edit' role_slug='contractors' pk=person.pk %}"
+                   class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-center text-muted py-5">
+        <i class="bi bi-hard-hat display-4 d-block mb-3 opacity-25"></i>
+        <p>No contractor staff have been added yet.</p>
+        <a href="{% url 'core:role_person_create' role_slug='contractors' %}"
+           class="btn btn-sm btn-primary">
+          <i class="bi bi-person-plus me-1"></i> Add First Staff Member
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+  <i class="bi bi-building display-4 text-muted d-block mb-3 opacity-25"></i>
+  <p class="text-muted">No Contractor company has been set up yet.</p>
+  <a href="{% url 'core:contractor_org_create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> Add Contractor Company
+  </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -34,7 +34,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'projects:list' %}">
-            <i class="bi bi-folder2-open"></i> Projects
+            <i class="bi bi-folder2-open"></i> Project
           </a>
         </li>
         {% if user.is_admin_user %}
@@ -44,20 +44,19 @@
           </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{% url 'core:people_list' %}">
-              <i class="bi bi-person-lines-fill"></i> All People
-            </a></li>
-            <li><a class="dropdown-item" href="{% url 'core:people_list' %}?role=contractor">
-              <i class="bi bi-hard-hat"></i> Contractors
-            </a></li>
-            <li><a class="dropdown-item" href="{% url 'core:people_list' %}?role=pm">
-              <i class="bi bi-briefcase"></i> Project Managers
-            </a></li>
-            <li><a class="dropdown-item" href="{% url 'core:people_list' %}?role=supervisor">
-              <i class="bi bi-eye"></i> Supervisors
+              <i class="bi bi-person-lines-fill"></i> Contractor Staff
             </a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{% url 'core:person_create' %}">
-              <i class="bi bi-person-plus"></i> Add New Person
+            <li class="dropdown-header text-muted small px-3">CONTRACTOR</li>
+            <li><a class="dropdown-item" href="{% url 'core:contractor_org_detail' %}">
+              <i class="bi bi-building text-primary"></i> Contractor Company
+            </a></li>
+            <li><a class="dropdown-item" href="{% url 'core:role_person_list' role_slug='contractors' %}">
+              <i class="bi bi-hard-hat text-primary"></i> Contractor Staff
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'core:role_person_create' role_slug='contractors' %}">
+              <i class="bi bi-person-plus text-primary"></i> Add Staff Member
             </a></li>
           </ul>
         </li>
@@ -141,6 +140,12 @@
 <!-- Bootstrap JS + HTMX -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script>
+  /* Global HTMX CSRF — attach Django CSRF token to every HTMX request */
+  document.body.addEventListener('htmx:configRequest', function (evt) {
+    evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+  });
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

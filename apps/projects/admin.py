@@ -9,7 +9,7 @@ class SiteInline(admin.TabularInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ['reference', 'name', 'status', 'contractor', 'project_manager', 'start_date', 'completion_date']
+    list_display = ['reference', 'name', 'status', 'contractor', 'pm_company', 'start_date', 'completion_date']
     list_filter = ['status']
     search_fields = ['name', 'reference']
     inlines = [SiteInline]

@@ -85,8 +85,9 @@ class CompensationEvent(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         if not self.reference:
+            prefix = getattr(self.project, 'ce_reference_prefix', 'CNCE-') or 'CNCE-'
             count = CompensationEvent.objects.filter(project=self.project).count() + 1
-            self.reference = f'CE-{count:04d}'
+            self.reference = f'{prefix}{count:04d}'
         super().save(*args, **kwargs)
 
     # --- Deadline helpers ---

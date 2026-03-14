@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+{% block title %}Edit Contract Data — {{ project.reference }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.pk %}">{{ project.reference }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'projects:contract_data' project.pk %}">Contract Data</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+  </ol>
+</nav>
+
+<h2 class="fw-bold mb-1">Contract Data — Part 1</h2>
+<p class="text-muted mb-4 small">Data provided by the Client &nbsp;|&nbsp; {{ project.reference }} — {{ project.name }}</p>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {# Inline formset management forms #}
+  {{ access_fs.management_form }}
+  {{ section_fs.management_form }}
+
+  <!-- Tab nav -->
+  <ul class="nav nav-tabs mb-0" id="cdTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-general"  type="button"><i class="bi bi-1-circle me-1"></i>General</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-time"     type="button"><i class="bi bi-calendar3 me-1"></i>Time</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-defects"  type="button"><i class="bi bi-clipboard-check me-1"></i>Testing & Payment</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-insurance" type="button"><i class="bi bi-shield-check me-1"></i>Insurance</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-options"  type="button"><i class="bi bi-toggles me-1"></i>Secondary Options</button></li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom bg-white p-4 shadow-sm" id="cdTabContent">
+
+    <!-- ── Tab 1: General ───────────────────────────────────────────────── -->
+    <div class="tab-pane fade show active" id="tab-general">
+      <div class="row g-3 mt-1">
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">NEC Version</label>
+          {{ form.nec_version }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Main Option</label>
+          {{ form.main_option }}
+        </div>
+
+        <div class="col-12">
+          <hr class="my-2"><p class="fw-semibold text-muted small text-uppercase mb-2">Secondary Options</p>
+          <div class="row row-cols-2 row-cols-md-3 g-2">
+            {% for field in form %}
+              {% if field.name|slice:":4" == "opt_" %}
+              <div class="col">
+                <div class="form-check">
+                  {{ field.as_widget }}
+                  <label class="form-check-label small" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                </div>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-12">
+          <hr class="my-2"><p class="fw-semibold text-muted small text-uppercase mb-2">Works & Site</p>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">{{ form.works_description.label }}</label>
+          {{ form.works_description }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.employer_name.label }}</label>
+          {{ form.employer_name }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.site_information_ref.label }}</label>
+          {{ form.site_information_ref }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.adjudicator.label }}</label>
+          {{ form.adjudicator }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab 2: Time ──────────────────────────────────────────────────── -->
+    <div class="tab-pane fade" id="tab-time">
+      <div class="row g-3 mt-1">
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.contract_date.label }}</label>
+          {{ form.contract_date }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.starting_date.label }}</label>
+          {{ form.starting_date }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.completion_date.label }}</label>
+          {{ form.completion_date }}
+        </div>
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">{{ form.starting_date_notes.label }}</label>
+          {{ form.starting_date_notes }}
+          <div class="form-text">{{ form.starting_date_notes.help_text }}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.period_for_reply.label }}</label>
+          {{ form.period_for_reply }}
+          <div class="form-text">{{ form.period_for_reply.help_text }}</div>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">{{ form.completion_description.label }}</label>
+          {{ form.completion_description }}
+          <div class="form-text">{{ form.completion_description.help_text }}</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.first_programme_weeks.label }}</label>
+          {{ form.first_programme_weeks }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.programme_revision_interval.label }}</label>
+          {{ form.programme_revision_interval }}
+        </div>
+
+        <!-- Access Dates inline formset -->
+        <div class="col-12 mt-2">
+          <hr class="my-2">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <p class="fw-semibold text-muted small text-uppercase mb-0">Access Dates</p>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-access-row">
+              <i class="bi bi-plus-lg me-1"></i>Add Row
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle" id="access-table">
+              <thead class="table-light">
+                <tr>
+                  <th>Part of Site / Portion</th>
+                  <th>Access Date Description</th>
+                  <th>Access Date (if known)</th>
+                  <th>Conditions</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="access-rows">
+                {% for af in access_fs %}
+                <tr class="access-row">
+                  {% for hidden in af.hidden_fields %}<td class="d-none">{{ hidden }}</td>{% endfor %}
+                  <td>{{ af.site_portion }}</td>
+                  <td>{{ af.access_description }}</td>
+                  <td>{{ af.access_date }}</td>
+                  <td>{{ af.conditions }}</td>
+                  <td class="text-center">
+                    {% if af.instance.pk %}
+                    <div class="d-none">{{ af.DELETE }}</div>
+                    <button type="button" class="btn btn-sm btn-outline-danger del-row" onclick="deleteRow(this)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary del-row" onclick="this.closest('tr').remove()">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Risk Register -->
+        <div class="col-12">
+          <hr class="my-2"><label class="form-label fw-semibold">{{ form.risk_register_items.label }}</label>
+          {{ form.risk_register_items }}
+          <div class="form-text">{{ form.risk_register_items.help_text }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab 3: Testing & Payment ─────────────────────────────────────── -->
+    <div class="tab-pane fade" id="tab-defects">
+      <div class="row g-3 mt-1">
+        <div class="col-12">
+          <p class="fw-semibold text-muted small text-uppercase mb-3">4. Testing and Defects</p>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.defects_date.label }}</label>
+          {{ form.defects_date }}
+          <div class="form-text">{{ form.defects_date.help_text }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.defect_correction_period.label }}</label>
+          {{ form.defect_correction_period }}
+          <div class="form-text">{{ form.defect_correction_period.help_text }}</div>
+        </div>
+
+        <div class="col-12 mt-2">
+          <hr class="my-2"><p class="fw-semibold text-muted small text-uppercase mb-3">5. Payment</p>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.currency.label }}</label>
+          {{ form.currency }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.assessment_interval.label }}</label>
+          {{ form.assessment_interval }}
+          <div class="form-text">{{ form.assessment_interval.help_text }}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">{{ form.interest_rate.label }}</label>
+          {{ form.interest_rate }}
+          <div class="form-text">{{ form.interest_rate.help_text }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab 4: Insurance ─────────────────────────────────────────────── -->
+    <div class="tab-pane fade" id="tab-insurance">
+      <div class="row g-3 mt-1">
+        <div class="col-12"><p class="fw-semibold text-muted small text-uppercase mb-1">8. Risks and Insurance</p></div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.min_indemnity_amount.label }}</label>
+          {{ form.min_indemnity_amount }}
+          <div class="form-text">{{ form.min_indemnity_amount.help_text }}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">{{ form.insurance_notes.label }}</label>
+          {{ form.insurance_notes }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">{{ form.method_of_measurement.label }}</label>
+          {{ form.method_of_measurement }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab 5: Secondary Options Data ────────────────────────────────── -->
+    <div class="tab-pane fade" id="tab-options">
+      <div class="row g-3 mt-1">
+
+        <!-- X13 -->
+        <div class="col-12"><p class="fw-semibold text-muted small text-uppercase mb-1">X13 — Performance Bond</p></div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.performance_bond_pct.label }}</label>
+          {{ form.performance_bond_pct }}
+        </div>
+
+        <!-- X14 -->
+        <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small text-uppercase mb-1">X14 — Advance Payment</p></div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.advance_payment_amount.label }}</label>
+          {{ form.advance_payment_amount }}
+          <div class="form-text">{{ form.advance_payment_amount.help_text }}</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.advance_payment_repayment.label }}</label>
+          {{ form.advance_payment_repayment }}
+          <div class="form-text">{{ form.advance_payment_repayment.help_text }}</div>
+        </div>
+
+        <!-- X16 -->
+        <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small text-uppercase mb-1">X16 — Retention</p></div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.retention_free_amount.label }}</label>
+          {{ form.retention_free_amount }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.retention_percentage.label }}</label>
+          {{ form.retention_percentage }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.retention_limit.label }}</label>
+          {{ form.retention_limit }}
+        </div>
+
+        <!-- X20 -->
+        <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small text-uppercase mb-1">X20 — Key Performance Indicators</p></div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">{{ form.kpi_report_interval.label }}</label>
+          {{ form.kpi_report_interval }}
+          <div class="form-text">{{ form.kpi_report_interval.help_text }}</div>
+        </div>
+
+        <!-- Z -->
+        <div class="col-12"><hr class="my-1"><p class="fw-semibold text-muted small text-uppercase mb-1">Z — Additional Conditions</p></div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">{{ form.additional_conditions_ref.label }}</label>
+          {{ form.additional_conditions_ref }}
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">{{ form.additional_conditions_notes.label }}</label>
+          {{ form.additional_conditions_notes }}
+        </div>
+
+        <!-- X5 / X7 Sections inline formset -->
+        <div class="col-12 mt-2">
+          <hr class="my-1">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <p class="fw-semibold text-muted small text-uppercase mb-0">X5 / X7 — Sections (Completion & Delay Damages)</p>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-section-row">
+              <i class="bi bi-plus-lg me-1"></i>Add Section
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle" id="section-table">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:70px">Section</th>
+                  <th>Description</th>
+                  <th style="width:120px">Completion Days</th>
+                  <th style="width:140px">Completion Date</th>
+                  <th style="width:140px">Damages/day</th>
+                  <th style="width:140px">Min Damages/day</th>
+                  <th>Formula / Notes</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="section-rows">
+                {% for sf in section_fs %}
+                <tr class="section-row">
+                  {% for hidden in sf.hidden_fields %}<td class="d-none">{{ hidden }}</td>{% endfor %}
+                  <td>{{ sf.section_number }}</td>
+                  <td>{{ sf.description }}</td>
+                  <td>{{ sf.completion_days }}</td>
+                  <td>{{ sf.completion_date }}</td>
+                  <td>{{ sf.delay_damages_per_day }}</td>
+                  <td>{{ sf.min_delay_damages }}</td>
+                  <td>{{ sf.delay_damages_formula }}</td>
+                  <td class="text-center">
+                    {% if sf.instance.pk %}
+                    <div class="d-none">{{ sf.DELETE }}</div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteRow(this)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="this.closest('tr').remove()">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>{# end tab-content #}
+
+  <!-- Empty form templates (hidden, used by JS to add new rows) -->
+  <table class="d-none"><tbody id="access-empty-row">
+    <tr class="access-row">
+      {% for f in access_fs.empty_form %}
+        {% if not f.is_hidden %}
+        <td>{{ f }}</td>
+        {% else %}
+        <td class="d-none">{{ f }}</td>
+        {% endif %}
+      {% endfor %}
+      <td><button type="button" class="btn btn-sm btn-outline-secondary" onclick="this.closest('tr').remove()"><i class="bi bi-x-lg"></i></button></td>
+    </tr>
+  </tbody></table>
+
+  <table class="d-none"><tbody id="section-empty-row">
+    <tr class="section-row">
+      {% for f in section_fs.empty_form %}
+        {% if not f.is_hidden %}
+        <td>{{ f }}</td>
+        {% else %}
+        <td class="d-none">{{ f }}</td>
+        {% endif %}
+      {% endfor %}
+      <td><button type="button" class="btn btn-sm btn-outline-secondary" onclick="this.closest('tr').remove()"><i class="bi bi-x-lg"></i></button></td>
+    </tr>
+  </tbody></table>
+
+  <!-- Save / Cancel -->
+  <div class="d-flex justify-content-between mt-4">
+    <a href="{% url 'projects:contract_data' project.pk %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Cancel
+    </a>
+    <button type="submit" class="btn btn-primary px-4">
+      <i class="bi bi-check-lg me-1"></i>Save Contract Data
+    </button>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteRow(btn) {
+  const row = btn.closest('tr');
+  const deleteInput = row.querySelector('input[id$="-DELETE"]');
+  if (deleteInput) {
+    deleteInput.checked = true;
+    row.style.opacity = '0.3';
+    btn.disabled = true;
+  } else {
+    row.remove();
+  }
+}
+
+function addFormsetRow(totalFormsId, emptyRowId, targetTbodyId) {
+  const totalInput = document.getElementById(totalFormsId);
+  const count = parseInt(totalInput.value);
+  const emptyHtml = document.getElementById(emptyRowId).innerHTML;
+  const newHtml = emptyHtml.replace(/__prefix__/g, count);
+  document.getElementById(targetTbodyId).insertAdjacentHTML('beforeend', newHtml);
+  totalInput.value = count + 1;
+}
+
+document.getElementById('add-access-row').addEventListener('click', function () {
+  addFormsetRow('id_access-TOTAL_FORMS', 'access-empty-row', 'access-rows');
+});
+
+document.getElementById('add-section-row').addEventListener('click', function () {
+  addFormsetRow('id_sections-TOTAL_FORMS', 'section-empty-row', 'section-rows');
+});
+
+// Auto-switch to the first tab that contains an error on form validation failure
+document.addEventListener('DOMContentLoaded', function () {
+  const tabPanes = document.querySelectorAll('.tab-pane');
+  tabPanes.forEach(function (pane) {
+    if (pane.querySelector('.is-invalid')) {
+      const tabId = pane.id;
+      const trigger = document.querySelector('[data-bs-target="#' + tabId + '"]');
+      if (trigger) { new bootstrap.Tab(trigger).show(); }
+    }
+  });
+});
+</script>
+{% endblock %}

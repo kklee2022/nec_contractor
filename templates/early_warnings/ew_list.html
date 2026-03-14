@@ -21,48 +21,44 @@
   </div>
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-body p-0">
-    {% if early_warnings %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Reference</th><th>Description</th><th>Raised By</th>
-            <th>Party</th><th>Status</th><th>Date</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ew in early_warnings %}
-          <tr>
-            <td class="fw-semibold">{{ ew.reference }}</td>
-            <td>{{ ew.description|truncatechars:80 }}</td>
-            <td>{{ ew.raised_by.get_full_name }}</td>
-            <td>{{ ew.get_raised_by_party_display }}</td>
-            <td>
-              <span class="badge
-                {% if ew.status == 'open' %}bg-danger
-                {% elif ew.status == 'under_review' %}bg-warning text-dark
-                {% elif ew.status == 'actioned' %}bg-info
-                {% else %}bg-success{% endif %}">
-                {{ ew.get_status_display }}
-              </span>
-            </td>
-            <td>{{ ew.created_at|date:"d M Y" }}</td>
-            <td>
-              <a href="{% url 'early_warnings:detail' ew.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="p-4 text-center text-muted">
-      <i class="bi bi-check-circle fs-1 text-success"></i>
-      <p class="mt-2">No early warnings on this project.</p>
-    </div>
-    {% endif %}
+{# Filter bar — triggers HTMX swap of #ew-results #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get"
+          hx-get="{% url 'early_warnings:list' project.pk %}"
+          hx-trigger="input changed delay:400ms from:#ew-search, change from:#ew-status, submit"
+          hx-target="#ew-results"
+          hx-push-url="true"
+          hx-indicator="#ew-spinner"
+          class="d-flex gap-2 align-items-center flex-wrap">
+      <input id="ew-search" type="search" name="q" value="{{ search }}"
+             class="form-control form-control-sm" style="max-width:280px;"
+             placeholder="Search reference or description…" autocomplete="off">
+      <select id="ew-status" name="status" class="form-select form-select-sm" style="width:auto;">
+        <option value="">All Status</option>
+        <option value="open"         {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+        <option value="under_review" {% if status_filter == 'under_review' %}selected{% endif %}>Under Review</option>
+        <option value="actioned"     {% if status_filter == 'actioned' %}selected{% endif %}>Actioned</option>
+        <option value="closed"       {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+      </select>
+      <span id="ew-spinner" class="htmx-indicator">
+        <span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+      </span>
+      {% if search or status_filter %}
+      <a href="{% url 'early_warnings:list' project.pk %}"
+         hx-get="{% url 'early_warnings:list' project.pk %}"
+         hx-target="#ew-results"
+         hx-push-url="true"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-x-lg me-1"></i>Clear
+      </a>
+      {% endif %}
+    </form>
   </div>
 </div>
+
+<div id="ew-results">
+  {% include 'early_warnings/_ew_table.html' %}
+</div>
 {% endblock %}
+

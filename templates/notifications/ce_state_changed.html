@@ -1,0 +1,25 @@
+Compensation Event Status Updated — {{ ce.reference }}
+
+Project: {{ ce.project.reference }} — {{ ce.project.name }}
+Reference: {{ ce.reference }}
+Clause: {{ ce.clause }}
+
+Status changed: {{ old_state|title }} → {{ ce.state|title }}
+
+{% if ce.quotation_cost %}
+Quoted Cost: {{ ce.quotation_cost|floatformat:2 }}
+Time Extension: {{ ce.quotation_time_extension }} days
+{% endif %}
+
+{% if ce.state == 'implemented' %}
+Final Cost: {{ ce.implemented_cost|floatformat:2 }}
+Agreed Time Extension: {{ ce.implemented_time_extension }} days
+Implemented: {{ ce.implemented_date|date:"d M Y" }}
+{% endif %}
+
+{% if ce.pm_reply %}
+PM Response: {{ ce.pm_reply }}
+{% endif %}
+
+---
+This is an automated notification from the NEC4 ECC Platform.

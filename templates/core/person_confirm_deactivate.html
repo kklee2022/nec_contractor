@@ -32,7 +32,7 @@
         {% endif %}
 
         <div class="d-flex justify-content-center gap-3 mt-4">
-          <a href="{% url 'core:people_list' %}" class="btn btn-outline-secondary">
+          <a href="{{ back_url|default:'#' }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Cancel
           </a>
           <form method="post">

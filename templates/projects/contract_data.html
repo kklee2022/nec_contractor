@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% block title %}Contract Data — {{ project.reference }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.pk %}">{{ project.reference }}</a></li>
+    <li class="breadcrumb-item active">Contract Data</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-0">Contract Data — Part 1</h2>
+    <p class="text-muted mb-0 small">Data provided by the Client</p>
+  </div>
+  {% if user.is_pm or user.is_admin_user %}
+  <a href="{% url 'projects:contract_data_edit' project.pk %}" class="btn btn-primary">
+    <i class="bi bi-pencil me-1"></i>
+    {% if cd %}Edit Contract Data{% else %}Enter Contract Data{% endif %}
+  </a>
+  {% endif %}
+</div>
+
+{% if not cd %}
+<div class="alert alert-warning d-flex align-items-center gap-3">
+  <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+  <div>
+    <strong>Contract Data has not been entered yet.</strong>
+    {% if user.is_pm or user.is_admin_user %}
+    <a href="{% url 'projects:contract_data_edit' project.pk %}" class="alert-link ms-2">Add now →</a>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+
+<!-- ── Section 1: General ──────────────────────────────────────────────── -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-dark text-white py-3">
+    <h5 class="mb-0"><i class="bi bi-1-circle me-2"></i>1. General</h5>
+  </div>
+  <div class="card-body">
+    <div class="row g-4">
+      <!-- Conditions of contract -->
+      <div class="col-md-6">
+        <h6 class="text-muted text-uppercase small fw-semibold mb-3">Conditions of Contract</h6>
+        <dl class="row mb-0 small">
+          <dt class="col-sm-5">NEC Version</dt>
+          <dd class="col-sm-7">{{ cd.nec_version|default:"—" }}</dd>
+          <dt class="col-sm-5">Main Option</dt>
+          <dd class="col-sm-7">
+            {% if cd.main_option %}
+            <span class="badge bg-dark fs-6">Option {{ cd.main_option }}</span>
+            {{ cd.get_main_option_display }}
+            {% else %}—{% endif %}
+          </dd>
+        </dl>
+        {% if cd.active_secondary_options %}
+        <p class="small text-muted mt-2 mb-1">Secondary Options:</p>
+        <div class="d-flex flex-wrap gap-1">
+          {% for opt in cd.active_secondary_options %}
+          <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ opt }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Key parties -->
+      <div class="col-md-6">
+        <h6 class="text-muted text-uppercase small fw-semibold mb-3">Key Parties</h6>
+        <dl class="row mb-0 small">
+          <dt class="col-sm-5">The Client</dt>
+          <dd class="col-sm-7">{{ cd.employer_name|default:"—" }}</dd>
+          <dt class="col-sm-5">Project Manager</dt>
+          <dd class="col-sm-7">
+            {{ project.project_manager.get_full_name|default:"—" }}
+            {% if project.project_manager.organisation %}<br><span class="text-muted">{{ project.project_manager.organisation }}</span>{% endif %}
+          </dd>
+          <dt class="col-sm-5">Supervisor</dt>
+          <dd class="col-sm-7">
+            {{ project.supervisor.get_full_name|default:"—" }}
+            {% if project.supervisor.organisation %}<br><span class="text-muted">{{ project.supervisor.organisation }}</span>{% endif %}
+          </dd>
+          <dt class="col-sm-5">Contractor</dt>
+          <dd class="col-sm-7">
+            {% if project.contractor %}
+            <a href="{% url 'core:contractor_org_detail' %}" class="text-decoration-none">{{ project.contractor.name }}</a>
+            {% else %}—{% endif %}
+          </dd>
+          <dt class="col-sm-5">Adjudicator</dt>
+          <dd class="col-sm-7">{{ cd.adjudicator|default:"—"|linebreaksbr }}</dd>
+        </dl>
+      </div>
+
+      <!-- Works & Site -->
+      <div class="col-md-6">
+        <h6 class="text-muted text-uppercase small fw-semibold mb-3">Works & Site</h6>
+        <dl class="row mb-0 small">
+          <dt class="col-sm-5">The Works</dt>
+          <dd class="col-sm-7">{{ cd.works_description|default:"—"|linebreaksbr }}</dd>
+          <dt class="col-sm-5">Site Information</dt>
+          <dd class="col-sm-7">{{ cd.site_information_ref|default:"—" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Section 3: Time ──────────────────────────────────────────────────── -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-primary text-white py-3">
+    <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>3. Time</h5>
+  </div>
+  <div class="card-body">
+    <div class="row g-4">
+      <!-- Key dates -->
+      <div class="col-md-5">
+        <h6 class="text-muted text-uppercase small fw-semibold mb-3">Key Dates</h6>
+        <dl class="row mb-0 small">
+          <dt class="col-sm-6">Contract Date</dt>
+          <dd class="col-sm-6">{{ cd.contract_date|date:"d M Y"|default:"—" }}</dd>
+          <dt class="col-sm-6">Starting Date</dt>
+          <dd class="col-sm-6">
+            {{ cd.starting_date|date:"d M Y"|default:"—" }}
+            {% if cd.starting_date_notes %}<br><span class="text-muted fst-italic">{{ cd.starting_date_notes }}</span>{% endif %}
+          </dd>
+          <dt class="col-sm-6">Completion Date</dt>
+          <dd class="col-sm-6">
+            {{ cd.completion_date|date:"d M Y"|default:"—" }}
+            {% if cd.completion_description %}<br><span class="text-muted fst-italic">{{ cd.completion_description }}</span>{% endif %}
+          </dd>
+          <dt class="col-sm-6">Period for Reply</dt>
+          <dd class="col-sm-6">{{ cd.period_for_reply|default:"—" }}</dd>
+          <dt class="col-sm-6">First Programme</dt>
+          <dd class="col-sm-6">
+            {% if cd.first_programme_weeks %}within {{ cd.first_programme_weeks }} week{{ cd.first_programme_weeks|pluralize }} of Contract Date{% else %}—{% endif %}
+          </dd>
+          <dt class="col-sm-6">Programme Revisions</dt>
+          <dd class="col-sm-6">{{ cd.programme_revision_interval|default:"—" }}</dd>
+        </dl>
+      </div>
+
+      <!-- Access dates -->
+      <div class="col-md-7">
+        <h6 class="text-muted text-uppercase small fw-semibold mb-3">Access Dates</h6>
+        {% with cd.access_dates.all as access_dates %}
+        {% if access_dates %}
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered mb-0 small">
+            <thead class="table-light">
+              <tr>
+                <th>Part of Site / Portion</th>
+                <th>Access Date / Description</th>
+                <th>Conditions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ad in access_dates %}
+              <tr>
+                <td>{{ ad.site_portion }}</td>
+                <td>
+                  {% if ad.access_date %}{{ ad.access_date|date:"d M Y" }}{% endif %}
+                  {% if ad.access_description %}{{ ad.access_description }}{% endif %}
+                  {% if not ad.access_date and not ad.access_description %}—{% endif %}
+                </td>
+                <td>{{ ad.conditions|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted small fst-italic">No access dates entered.</p>
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Risk Register -->
+      {% if cd.risk_register_items %}
+      <div class="col-12">
+        <h6 class="text-muted text-uppercase small fw-semibold mb-2">Risk Register — Initial Items</h6>
+        <ol class="mb-0 small">
+          {% for item in cd.risk_register_items.splitlines %}
+          {% if item.strip %}<li>{{ item.strip }}</li>{% endif %}
+          {% endfor %}
+        </ol>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── Section 4: Testing & Defects ────────────────────────────────────── -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-warning text-dark py-3">
+    <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>4. Testing and Defects</h5>
+  </div>
+  <div class="card-body">
+    <dl class="row mb-0 small">
+      <dt class="col-sm-3">Defects Date</dt>
+      <dd class="col-sm-9">{{ cd.defects_date|default:"—" }}</dd>
+      <dt class="col-sm-3">Defect Correction Period</dt>
+      <dd class="col-sm-9">{{ cd.defect_correction_period|default:"—" }}</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ── Section 5: Payment ───────────────────────────────────────────────── -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-success text-white py-3">
+    <h5 class="mb-0"><i class="bi bi-currency-pound me-2"></i>5. Payment</h5>
+  </div>
+  <div class="card-body">
+    <dl class="row mb-0 small">
+      <dt class="col-sm-3">Currency</dt>
+      <dd class="col-sm-9">{{ cd.currency|default:"—" }}</dd>
+      <dt class="col-sm-3">Assessment Interval</dt>
+      <dd class="col-sm-9">{{ cd.assessment_interval|default:"—" }}</dd>
+      <dt class="col-sm-3">Interest Rate</dt>
+      <dd class="col-sm-9">{{ cd.interest_rate|default:"—"|linebreaksbr }}</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- ── Section 8: Risks & Insurance ────────────────────────────────────── -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-danger text-white py-3">
+    <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i>8. Risks and Insurance</h5>
+  </div>
+  <div class="card-body small">
+    <dl class="row mb-0">
+      <dt class="col-sm-4">Minimum Indemnity Limit</dt>
+      <dd class="col-sm-8">{{ cd.min_indemnity_amount|default:"—" }}</dd>
+      {% if cd.insurance_notes %}
+      <dt class="col-sm-4">Insurance / PI Notes</dt>
+      <dd class="col-sm-8">{{ cd.insurance_notes|linebreaksbr }}</dd>
+      {% endif %}
+      {% if cd.method_of_measurement %}
+      <dt class="col-sm-4">Method of Measurement</dt>
+      <dd class="col-sm-8">{{ cd.method_of_measurement|linebreaksbr }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+</div>
+
+<!-- ── Secondary Options Data ───────────────────────────────────────────── -->
+{% if cd.opt_x5 or cd.opt_x7 or cd.opt_x13 or cd.opt_x14 or cd.opt_x16 or cd.opt_x20 or cd.opt_z %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-info text-white py-3">
+    <h5 class="mb-0"><i class="bi bi-toggles me-2"></i>Secondary Options — Data</h5>
+  </div>
+  <div class="card-body">
+
+    <!-- X5 / X7 Sections -->
+    {% with cd.sections.all as sections %}
+    {% if sections %}
+    <h6 class="fw-semibold mb-2">
+      {% if cd.opt_x5 %}X5 — Sectional Completion{% endif %}
+      {% if cd.opt_x5 and cd.opt_x7 %} / {% endif %}
+      {% if cd.opt_x7 %}X7 — Delay Damages{% endif %}
+    </h6>
+    <div class="table-responsive mb-4">
+      <table class="table table-sm table-bordered small">
+        <thead class="table-light">
+          <tr>
+            <th>Section</th>
+            <th>Description</th>
+            <th>Completion (days after starting date)</th>
+            <th>Completion Date</th>
+            <th>Delay Damages / day</th>
+            <th>Min. Delay Damages / day</th>
+            <th>Formula / Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sec in sections %}
+          <tr>
+            <td class="fw-semibold text-center">{{ sec.section_number }}</td>
+            <td>{{ sec.description|default:"—" }}</td>
+            <td class="text-center">{{ sec.completion_days|default:"—" }}</td>
+            <td>{{ sec.completion_date|date:"d M Y"|default:"—" }}</td>
+            <td class="text-end">{% if sec.delay_damages_per_day %}{{ cd.currency }} {{ sec.delay_damages_per_day|floatformat:2 }}{% else %}—{% endif %}</td>
+            <td class="text-end">{% if sec.min_delay_damages %}{{ cd.currency }} {{ sec.min_delay_damages|floatformat:2 }}{% else %}—{% endif %}</td>
+            <td>{{ sec.delay_damages_formula|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="row g-4">
+      <!-- X13 -->
+      {% if cd.opt_x13 and cd.performance_bond_pct %}
+      <div class="col-md-4">
+        <h6 class="fw-semibold">X13 — Performance Bond</h6>
+        <p class="small mb-0">{{ cd.performance_bond_pct }}% of the Contract Sum</p>
+      </div>
+      {% endif %}
+
+      <!-- X14 -->
+      {% if cd.opt_x14 %}
+      <div class="col-md-4">
+        <h6 class="fw-semibold">X14 — Advance Payment</h6>
+        <dl class="small mb-0">
+          <dt>Amount</dt><dd>{{ cd.advance_payment_amount|default:"—"|linebreaksbr }}</dd>
+          <dt>Repayment</dt><dd>{{ cd.advance_payment_repayment|default:"—"|linebreaksbr }}</dd>
+        </dl>
+      </div>
+      {% endif %}
+
+      <!-- X16 -->
+      {% if cd.opt_x16 %}
+      <div class="col-md-4">
+        <h6 class="fw-semibold">X16 — Retention</h6>
+        <dl class="row small mb-0">
+          <dt class="col-7">Retention Free Amount</dt>
+          <dd class="col-5 text-end">{% if cd.retention_free_amount %}{{ cd.currency }} {{ cd.retention_free_amount|floatformat:2 }}{% else %}—{% endif %}</dd>
+          <dt class="col-7">Retention Percentage</dt>
+          <dd class="col-5 text-end">{% if cd.retention_percentage %}{{ cd.retention_percentage }}%{% else %}—{% endif %}</dd>
+          <dt class="col-7">Limit of Retention</dt>
+          <dd class="col-5 text-end">{% if cd.retention_limit %}{{ cd.currency }} {{ cd.retention_limit|floatformat:2 }}{% else %}—{% endif %}</dd>
+        </dl>
+      </div>
+      {% endif %}
+
+      <!-- X20 -->
+      {% if cd.opt_x20 and cd.kpi_report_interval %}
+      <div class="col-md-4">
+        <h6 class="fw-semibold">X20 — Key Performance Indicators</h6>
+        <p class="small mb-0">Report interval: {{ cd.kpi_report_interval }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Z -->
+      {% if cd.opt_z %}
+      <div class="col-md-8">
+        <h6 class="fw-semibold">Z — Additional Conditions</h6>
+        <p class="small mb-0">
+          {% if cd.additional_conditions_ref %}Reference: <strong>{{ cd.additional_conditions_ref }}</strong>{% endif %}
+          {% if cd.additional_conditions_notes %}<br>{{ cd.additional_conditions_notes }}{% endif %}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endif %}
+
+{% endif %}{# end if cd #}
+{% endblock %}

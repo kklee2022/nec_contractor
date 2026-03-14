@@ -3,8 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
-from .forms import UserRegistrationForm, UserProfileForm, PersonForm
-from .models import User
+from django.db.models import Q
+from django.http import Http404
+from django.urls import reverse
+from .forms import (
+    UserRegistrationForm, UserProfileForm, PersonForm,
+    ContractorForm, ProjectManagerForm, SupervisorForm,
+    ContractorOrganisationForm,
+)
+from .models import User, ContractorOrganisation
 
 
 class NECLoginView(LoginView):
@@ -116,17 +123,14 @@ def dashboard_view(request):
 
 @login_required
 def people_list_view(request):
-    """List all Contractor, PM and Supervisor users (admin only)."""
+    """List Contractor staff (admin only)."""
     if not request.user.is_admin_user:
         messages.error(request, 'Access denied. Admin role required.')
         return redirect('core:dashboard')
 
-    role_filter = request.GET.get('role', '')
     search = request.GET.get('q', '')
-    users = User.objects.exclude(role=User.Role.ADMIN).exclude(is_superuser=True)
+    users = User.objects.filter(role=User.Role.CONTRACTOR)
 
-    if role_filter:
-        users = users.filter(role=role_filter)
     if search:
         users = users.filter(
             first_name__icontains=search
@@ -137,15 +141,10 @@ def people_list_view(request):
         )
 
     context = {
-        'people': users.order_by('role', 'last_name', 'first_name'),
-        'role_filter': role_filter,
+        'people': users.order_by('last_name', 'first_name'),
         'search': search,
-        'roles': [(r.value, r.label) for r in User.Role if r != User.Role.ADMIN],
-        'role_counts': {
-            'contractor': User.objects.filter(role=User.Role.CONTRACTOR).count(),
-            'pm': User.objects.filter(role=User.Role.PROJECT_MANAGER).count(),
-            'supervisor': User.objects.filter(role=User.Role.SUPERVISOR).count(),
-        },
+        'total': User.objects.filter(role=User.Role.CONTRACTOR).count(),
+        'active_count': User.objects.filter(role=User.Role.CONTRACTOR, is_active=True).count(),
     }
     return render(request, 'core/people_list.html', context)
 
@@ -213,4 +212,220 @@ def person_deactivate_view(request, pk):
         messages.success(request, f'{person.get_full_name() or person.username} has been {action}.')
         return redirect('core:people_list')
 
-    return render(request, 'core/person_confirm_deactivate.html', {'person': person})
+    back_url = reverse('core:people_list')
+    return render(request, 'core/person_confirm_deactivate.html', {'person': person, 'back_url': back_url})
+
+
+# ---------------------------------------------------------------------------
+# Role-specific CRUD helpers
+# ---------------------------------------------------------------------------
+
+ROLE_SLUG_MAP = {
+    'contractors': User.Role.CONTRACTOR,
+}
+
+ROLE_CONFIG = {
+    User.Role.CONTRACTOR: {
+        'label': 'Contractor Staff', 'plural': 'Contractor Staff',
+        'slug': 'contractors', 'icon': 'bi-person-hard-hat', 'color': 'primary',
+    },
+}
+
+ROLE_FORMS = {
+    User.Role.CONTRACTOR: ContractorForm,
+}
+
+
+def _get_role_or_404(role_slug):
+    role = ROLE_SLUG_MAP.get(role_slug)
+    if not role:
+        raise Http404(f'Unknown role slug: {role_slug}')
+    return role, ROLE_CONFIG[role], ROLE_FORMS[role]
+
+
+@login_required
+def role_person_list(request, role_slug):
+    """List people for one specific role (contractors / project-managers / supervisors)."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+
+    role, config, _ = _get_role_or_404(role_slug)
+    qs = User.objects.filter(role=role)
+
+    search = request.GET.get('q', '').strip()
+    if search:
+        qs = qs.filter(
+            Q(first_name__icontains=search) | Q(last_name__icontains=search) |
+            Q(email__icontains=search) | Q(organisation__icontains=search)
+        )
+
+    context = {
+        'people': qs.order_by('last_name', 'first_name'),
+        'search': search,
+        'config': config,
+        'role_slug': role_slug,
+        'total': User.objects.filter(role=role).count(),
+        'active_count': User.objects.filter(role=role, is_active=True).count(),
+    }
+    if request.htmx:
+        return render(request, 'core/_role_person_table.html', context)
+    return render(request, 'core/role_person_list.html', context)
+
+
+@login_required
+def role_person_create(request, role_slug):
+    """Create a new person for a specific role."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+
+    role, config, FormClass = _get_role_or_404(role_slug)
+
+    if request.method == 'POST':
+        form = FormClass(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                form.save()
+            messages.success(request, f'{config["label"]} created successfully.')
+            return redirect('core:role_person_list', role_slug=role_slug)
+    else:
+        form = FormClass()
+
+    context = {
+        'form': form,
+        'config': config,
+        'role_slug': role_slug,
+        'is_new': True,
+        'page_title': f'Add {config["label"]}',
+        'list_url': reverse('core:role_person_list', kwargs={'role_slug': role_slug}),
+    }
+    return render(request, 'core/role_person_form.html', context)
+
+
+@login_required
+def role_person_edit(request, role_slug, pk):
+    """Edit an existing person for a specific role."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+
+    role, config, FormClass = _get_role_or_404(role_slug)
+    person = get_object_or_404(User, pk=pk, role=role)
+
+    if request.method == 'POST':
+        form = FormClass(request.POST, instance=person)
+        if form.is_valid():
+            with transaction.atomic():
+                form.save()
+            messages.success(request, f'{config["label"]} updated successfully.')
+            return redirect('core:role_person_list', role_slug=role_slug)
+    else:
+        form = FormClass(instance=person)
+
+    context = {
+        'form': form,
+        'config': config,
+        'role_slug': role_slug,
+        'person': person,
+        'is_new': False,
+        'page_title': f'Edit {config["label"]}',
+        'list_url': reverse('core:role_person_list', kwargs={'role_slug': role_slug}),
+    }
+    return render(request, 'core/role_person_form.html', context)
+
+
+@login_required
+def role_person_deactivate(request, role_slug, pk):
+    """Toggle active/inactive for a role-specific person."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+
+    role, config, _ = _get_role_or_404(role_slug)
+    person = get_object_or_404(User, pk=pk, role=role)
+
+    if person == request.user:
+        messages.error(request, 'You cannot deactivate your own account.')
+        return redirect('core:role_person_list', role_slug=role_slug)
+
+    if request.method == 'POST':
+        person.is_active = not person.is_active
+        person.save(update_fields=['is_active'])
+        action = 'activated' if person.is_active else 'deactivated'
+        if request.htmx:
+            return render(request, 'core/_role_person_row.html', {
+                'person': person,
+                'config': config,
+                'role_slug': role_slug,
+            })
+        messages.success(request, f'{person.get_full_name() or person.username} has been {action}.')
+        return redirect('core:role_person_list', role_slug=role_slug)
+
+    back_url = reverse('core:role_person_list', kwargs={'role_slug': role_slug})
+    return render(request, 'core/person_confirm_deactivate.html', {
+        'person': person,
+        'back_url': back_url,
+        'config': config,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Contractor Organisation CRUD (singleton company entity)
+# ---------------------------------------------------------------------------
+
+@login_required
+def contractor_org_detail(request):
+    """View the single Contractor Organisation (create redirect if none)."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+    org = ContractorOrganisation.objects.first()
+    if not org:
+        return redirect('core:contractor_org_create')
+    staff = org.staff.order_by('last_name', 'first_name')
+    return render(request, 'core/contractor_org_detail.html', {
+        'org': org,
+        'staff': staff,
+    })
+
+
+@login_required
+def contractor_org_create(request):
+    """Create the Contractor Organisation."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+    if ContractorOrganisation.objects.exists():
+        messages.info(request, 'A Contractor company already exists.')
+        return redirect('core:contractor_org_detail')
+    form = ContractorOrganisationForm(request.POST or None)
+    if form.is_valid():
+        org = form.save()
+        messages.success(request, f'Contractor company "{org.name}" created.')
+        return redirect('core:contractor_org_detail')
+    return render(request, 'core/contractor_org_form.html', {
+        'form': form,
+        'is_new': True,
+        'page_title': 'Add Contractor Company',
+    })
+
+
+@login_required
+def contractor_org_edit(request):
+    """Edit the Contractor Organisation."""
+    if not request.user.is_admin_user:
+        messages.error(request, 'Access denied.')
+        return redirect('core:dashboard')
+    org = get_object_or_404(ContractorOrganisation, pk=ContractorOrganisation.objects.first().pk)
+    form = ContractorOrganisationForm(request.POST or None, instance=org)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Contractor company details updated.')
+        return redirect('core:contractor_org_detail')
+    return render(request, 'core/contractor_org_form.html', {
+        'form': form,
+        'org': org,
+        'is_new': False,
+        'page_title': 'Edit Contractor Company',
+    })

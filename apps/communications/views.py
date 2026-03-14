@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
-from apps.core.permissions import AnyRoleRequiredMixin, PMOrContractorRequiredMixin
+from apps.core.permissions import AnyRoleRequiredMixin, ContractorRequiredMixin
+from apps.core.notifications import notify_communication_logged
 from apps.projects.models import Project
 from .models import Communication
 from .forms import CommunicationForm
@@ -24,7 +25,7 @@ class CommunicationListView(AnyRoleRequiredMixin, ListView):
         return ctx
 
 
-class CommunicationCreateView(PMOrContractorRequiredMixin, CreateView):
+class CommunicationCreateView(ContractorRequiredMixin, CreateView):
     model = Communication
     form_class = CommunicationForm
     template_name = 'communications/comm_form.html'
@@ -53,6 +54,7 @@ class CommunicationCreateView(PMOrContractorRequiredMixin, CreateView):
             return self.form_invalid(form)
         response = super().form_valid(form)
         messages.success(self.request, f'Communication {self.object.reference} logged.')
+        notify_communication_logged(self.object)
         return response
 
     def get_success_url(self):

@@ -1,0 +1,23 @@
+{% load tz %}
+Early Warning Raised — {{ ew.reference }}
+
+Project: {{ ew.project.reference }} — {{ ew.project.name }}
+Reference: {{ ew.reference }}
+Raised by: {{ ew.raised_by.get_full_name }} ({{ ew.get_raised_by_party_display }})
+Date: {{ ew.created_at|date:"d M Y H:i" }}
+
+Description:
+{{ ew.description }}
+
+Potential Impact:
+{{ ew.potential_impact }}
+
+{% if ew.mitigation %}
+Proposed Mitigation:
+{{ ew.mitigation }}
+{% endif %}
+
+Status: {{ ew.get_status_display }}
+
+---
+This is an automated notification from the NEC4 ECC Platform.

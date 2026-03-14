@@ -1,0 +1,41 @@
+<tr id="person-row-{{ person.pk }}" class="{% if not person.is_active %}table-secondary text-muted{% endif %}">
+  <td class="fw-semibold">{{ person.get_full_name|default:person.username }}</td>
+  <td>{{ person.username }}</td>
+  <td>
+    <a href="mailto:{{ person.email }}" class="text-decoration-none">{{ person.email }}</a>
+  </td>
+  {% if role_slug == 'contractors' %}
+  <td>{{ person.organisation|default:"—" }}</td>
+  <td>
+    {% if person.contractor_org %}
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+      <i class="bi bi-building me-1"></i>{{ person.contractor_org.name }}
+    </span>
+    {% else %}<span class="text-muted">—</span>{% endif %}
+  </td>
+  {% else %}
+  <td>{{ person.organisation|default:"—" }}</td>
+  {% endif %}
+  <td>{{ person.phone|default:"—" }}</td>
+  <td>
+    {% if person.is_active %}
+    <span class="badge bg-success">Active</span>
+    {% else %}
+    <span class="badge bg-secondary">Inactive</span>
+    {% endif %}
+  </td>
+  <td class="text-end">
+    <a href="{% url 'core:role_person_edit' role_slug=role_slug pk=person.pk %}"
+       class="btn btn-sm btn-outline-{{ config.color }}">
+      <i class="bi bi-pencil"></i>
+    </a>
+    <button type="button"
+            class="btn btn-sm {% if person.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+            hx-post="{% url 'core:role_person_deactivate' role_slug=role_slug pk=person.pk %}"
+            hx-target="#person-row-{{ person.pk }}"
+            hx-swap="outerHTML"
+            hx-confirm="{% if person.is_active %}Deactivate {{ person.get_full_name|default:person.username }}?{% else %}Reactivate {{ person.get_full_name|default:person.username }}?{% endif %}">
+      <i class="bi {% if person.is_active %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
+    </button>
+  </td>
+</tr>

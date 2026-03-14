@@ -33,7 +33,7 @@
         <hr>
         <h6 class="text-muted">Quotation</h6>
         <div class="row">
-          <div class="col-sm-4"><strong>Quoted Cost:</strong><br>£{{ ce.quotation_cost|floatformat:2 }}</div>
+          <div class="col-sm-4"><strong>Quoted Cost:</strong><br>HKD{{ ce.quotation_cost|floatformat:2 }}</div>
           <div class="col-sm-4"><strong>Time Extension:</strong><br>{{ ce.quotation_time_extension }} days</div>
           <div class="col-sm-4"><strong>Submitted:</strong><br>{{ ce.quotation_submitted_date|date:"d M Y" }}</div>
         </div>
@@ -50,7 +50,7 @@
         <hr>
         <h6 class="text-muted">Implementation</h6>
         <div class="row">
-          <div class="col-sm-4"><strong>Final Cost:</strong><br>£{{ ce.implemented_cost|floatformat:2 }}</div>
+          <div class="col-sm-4"><strong>Final Cost:</strong><br>HKD{{ ce.implemented_cost|floatformat:2 }}</div>
           <div class="col-sm-4"><strong>Time Extension:</strong><br>{{ ce.implemented_time_extension }} days</div>
           <div class="col-sm-4"><strong>Date:</strong><br>{{ ce.implemented_date|date:"d M Y" }}</div>
         </div>
@@ -59,7 +59,7 @@
     </div>
 
     <!-- State Machine Actions -->
-    {% if ce.state == 'notified' and user.is_contractor %}
+    {% if ce.state == 'notified' %}
     <div class="card shadow-sm mb-3 border-warning">
       <div class="card-header bg-warning"><h6 class="mb-0">Submit Quotation (Clause 62)</h6></div>
       <div class="card-body">
@@ -72,7 +72,7 @@
     </div>
     {% endif %}
 
-    {% if ce.state in 'quoted,pm_reviewing' and user.is_pm %}
+    {% if ce.state in 'quoted,pm_reviewing' %}
     <div class="card shadow-sm mb-3 border-info">
       <div class="card-header bg-info text-white"><h6 class="mb-0">PM Review (Clause 62.3)</h6></div>
       <div class="card-body">
@@ -85,7 +85,7 @@
     </div>
     {% endif %}
 
-    {% if ce.state == 'pm_reviewing' and user.is_pm %}
+    {% if ce.state == 'pm_reviewing' %}
     <div class="card shadow-sm mb-3 border-success">
       <div class="card-header bg-success text-white"><h6 class="mb-0">Implement CE (Clause 65)</h6></div>
       <div class="card-body">
@@ -116,27 +116,76 @@
       </div>
     </div>
 
-    <!-- FSM State Flow -->
+    <!-- NEC4 CE Workflow Timeline -->
     <div class="card shadow-sm mt-3">
-      <div class="card-header"><h6 class="mb-0">State Progress</h6></div>
-      <div class="card-body p-2">
-        {% for step in "notified,quoted,pm_reviewing,implemented"|split:"," %}
-        <div class="d-flex align-items-center mb-1">
-          <span class="me-2
-            {% if ce.state == step %}text-primary fw-bold
-            {% elif ce.state == 'implemented' or ce.state == 'pm_reviewing' and step != 'implemented' %}text-success
-            {% else %}text-muted{% endif %}">
-            <i class="bi bi-{% if ce.state == step %}arrow-right-circle-fill{% elif ce.state == 'implemented' %}check-circle-fill{% else %}circle{% endif %}"></i>
-          </span>
-          <small class="{% if ce.state == step %}fw-bold{% endif %}">{{ step|title }}</small>
+      <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-diagram-3-fill text-secondary me-1"></i> NEC4 Workflow</h6>
+      </div>
+      <div class="card-body py-3 px-3">
+
+        {% for step in state_steps %}
+        <div class="d-flex">
+          {# Icon + connector line column #}
+          <div class="d-flex flex-column align-items-center me-3" style="width:24px">
+            {% if forloop.counter0 < current_state_index %}
+              <div class="rounded-circle bg-success d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width:24px;height:24px">
+                <i class="bi bi-check" style="font-size:.8rem"></i>
+              </div>
+            {% elif forloop.counter0 == current_state_index %}
+              <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white flex-shrink-0" style="width:24px;height:24px">
+                <i class="bi bi-arrow-right" style="font-size:.7rem"></i>
+              </div>
+            {% else %}
+              <div class="rounded-circle border border-2 flex-shrink-0" style="width:24px;height:24px;border-color:#ced4da !important"></div>
+            {% endif %}
+            {% if not forloop.last %}
+            <div class="flex-grow-1 my-1" style="width:2px;min-height:16px;background:{% if forloop.counter0 < current_state_index %}#198754{% else %}#dee2e6{% endif %};"></div>
+            {% endif %}
+          </div>
+          {# Label column #}
+          <div class="pb-3">
+            <div class="small {% if forloop.counter0 == current_state_index %}fw-bold text-primary{% elif forloop.counter0 < current_state_index %}text-success{% else %}text-muted{% endif %}">
+              {{ step.label }}
+              {% if forloop.counter0 == current_state_index %}<span class="badge bg-primary ms-1" style="font-size:.6rem">NOW</span>{% endif %}
+            </div>
+            <div class="text-muted" style="font-size:.7rem">{{ step.clause }}</div>
+          </div>
         </div>
         {% endfor %}
-        {% if ce.state == 'rejected' %}
-        <div class="text-danger"><i class="bi bi-x-circle-fill"></i> <small>Rejected</small></div>
-        {% endif %}
+
         {% if ce.state == 'assumed' %}
-        <div class="text-warning"><i class="bi bi-exclamation-circle-fill"></i> <small>Assumed (Cl.61.4)</small></div>
+        <hr class="my-2">
+        <div class="d-flex align-items-start text-warning">
+          <i class="bi bi-exclamation-triangle-fill me-2 mt-1 flex-shrink-0"></i>
+          <div>
+            <div class="small fw-bold">Assumed Accepted</div>
+            <div class="text-muted" style="font-size:.7rem">Cl.61.4 — PM failed to reply within 8 weeks; quotation deemed accepted</div>
+          </div>
+        </div>
         {% endif %}
+
+        {% if ce.state == 'rejected' %}
+        <hr class="my-2">
+        <div class="d-flex align-items-start text-danger">
+          <i class="bi bi-x-circle-fill me-2 mt-1 flex-shrink-0"></i>
+          <div>
+            <div class="small fw-bold">Rejected by PM</div>
+            <div class="text-muted" style="font-size:.7rem">Cl.62.3 — Contractor may resubmit a revised quotation</div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if ce.pm_reply_overdue and ce.state == 'notified' %}
+        <hr class="my-2">
+        <div class="d-flex align-items-start text-danger">
+          <i class="bi bi-clock-fill me-2 mt-1 flex-shrink-0"></i>
+          <div>
+            <div class="small fw-bold">PM Reply Overdue</div>
+            <div class="text-muted" style="font-size:.7rem">Cl.61.4 — Deadline was {{ ce.pm_reply_deadline|date:"d M Y" }}</div>
+          </div>
+        </div>
+        {% endif %}
+
       </div>
     </div>
   </div>

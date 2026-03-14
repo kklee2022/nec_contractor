@@ -5,6 +5,36 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
+class ContractorOrganisation(models.Model):
+    """The Contractor company (as a distinct NEC4 party)."""
+
+    name = models.CharField(max_length=255, unique=True, verbose_name='Company Name')
+    registration_no = models.CharField(
+        max_length=100, blank=True,
+        verbose_name='Company / Registration No.',
+    )
+    address = models.TextField(blank=True, verbose_name='Registered Address')
+    contact_email = models.EmailField(blank=True, verbose_name='Contact Email')
+    contact_phone = models.CharField(max_length=30, blank=True, verbose_name='Contact Phone')
+    website = models.URLField(blank=True)
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Contractor Organisation'
+        verbose_name_plural = 'Contractor Organisations'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def active_staff_count(self):
+        return self.staff.filter(is_active=True).count()
+
+
 class User(AbstractUser):
     """Extended user model with NEC4 roles."""
 
@@ -20,6 +50,16 @@ class User(AbstractUser):
         default=Role.CONTRACTOR,
     )
     organisation = models.CharField(max_length=255, blank=True)
+    # For contractor-role users: links them to the Contractor company entity
+    contractor_org = models.ForeignKey(
+        ContractorOrganisation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='staff',
+        verbose_name='Contractor Company',
+        help_text='Assign contractor-role users to their company.',
+    )
     phone = models.CharField(max_length=30, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 

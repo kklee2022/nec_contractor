@@ -1,0 +1,15 @@
+Compensation Event Notified — {{ ce.reference }}
+
+Project: {{ ce.project.reference }} — {{ ce.project.name }}
+Reference: {{ ce.reference }}
+Clause: {{ ce.clause }}
+Notified by: {{ ce.notified_by.get_full_name }}
+Notification date: {{ ce.notification_date|date:"d M Y H:i" }}
+
+Description:
+{{ ce.description }}
+
+PM Reply Deadline (Cl.61.4): {{ ce.pm_reply_deadline|date:"d M Y" }}
+
+---
+This is an automated notification from the NEC4 ECC Platform.

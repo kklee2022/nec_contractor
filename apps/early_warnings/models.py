@@ -63,10 +63,11 @@ class EarlyWarning(TimeStampedModel):
         return f'{self.reference or "EW"} — {self.project.reference}'
 
     def save(self, *args, **kwargs):
-        # Auto-generate reference like EW-0001
+        # Auto-generate reference using project prefix
         if not self.reference:
+            prefix = getattr(self.project, 'ew_reference_prefix', 'CNEW-') or 'CNEW-'
             count = EarlyWarning.objects.filter(project=self.project).count() + 1
-            self.reference = f'EW-{count:04d}'
+            self.reference = f'{prefix}{count:04d}'
         super().save(*args, **kwargs)
 
 

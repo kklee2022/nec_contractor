@@ -1,0 +1,18 @@
+Communication Logged — {{ comm.reference }}
+
+Project: {{ comm.project.reference }} — {{ comm.project.name }}
+Reference: {{ comm.reference }}
+Type: {{ comm.get_communication_type_display }}
+Direction: {{ comm.get_direction_display }}
+Sent by: {{ comm.sent_by.get_full_name }}
+Date: {{ comm.sent_date|date:"d M Y H:i" }}
+
+Subject: {{ comm.subject }}
+
+{{ comm.body }}
+
+{% if comm.linked_ew %}Linked Early Warning: {{ comm.linked_ew.reference }}{% endif %}
+{% if comm.linked_ce %}Linked CE: {{ comm.linked_ce.reference }}{% endif %}
+
+---
+This is an automated notification from the NEC4 ECC Platform.
